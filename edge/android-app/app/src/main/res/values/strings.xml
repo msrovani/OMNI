@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Omni-Box</string>
+    <string name="status_normal">Normal</string>
+    <string name="status_shadow">Sombra</string>
+    <string name="status_emergency">Emergência</string>
+    <string name="status_commissioning">Comissionamento</string>
+    <string name="label_soc">SoC</string>
+    <string name="label_soh">SoH</string>
+    <string name="label_power">Potência</string>
+    <string name="label_temp">Temperatura</string>
+    <string name="label_grid">Rede</string>
+    <string name="label_uptime">Uptime</string>
+    <string name="connected">Conectado</string>
+    <string name="disconnected">Desconectado</string>
+</resources>

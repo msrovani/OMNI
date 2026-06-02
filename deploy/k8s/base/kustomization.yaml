@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - pde-engine-deployment.yaml
+  - pde-engine-service.yaml
+  - omni-cloud-deployment.yaml
+  - omni-cloud-service.yaml
+  - asset-manager-deployment.yaml
+  - asset-manager-service.yaml
+  - nats-deployment.yaml
+  - nats-service.yaml

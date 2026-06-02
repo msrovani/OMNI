@@ -1,0 +1,39 @@
+[package]
+name = "omni-box-fw"
+version = "1.0.0"
+edition = "2021"
+description = "Omni-Box Edge Firmware — Android NDK + ESP32 + Cortex-M"
+resolver = "2"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "omni_box_fw"
+
+[features]
+default = ["std"]
+std = []
+no_std = []
+prod = ["std"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+heapless = "0.8"
+
+# JNI bindings for Android (only when targeting Android NDK)
+jni = { version = "0.21", optional = true, features = ["invocation"] }
+
+# Embedded HAL (ESP32 / Cortex-M targets)
+embedded-hal = "1.0"
+
+# Android NDK cross-compilation
+cfg-if = "1.0"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = { version = "0.21", features = ["invocation"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

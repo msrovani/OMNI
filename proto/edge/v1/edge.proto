@@ -1,0 +1,53 @@
+syntax = "proto3";
+package omnigrid.edge.v1;
+import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
+
+message Telemetry {
+  string device_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  double voltage_v = 3;
+  double current_a = 4;
+  double frequency_hz = 5;
+  double soc_percent = 6;
+  double soh_percent = 7;
+  double temperature_c = 8;
+  double power_w = 9;
+  bool is_grid_connected = 10;
+}
+
+message TelemetryBatch {
+  repeated Telemetry samples = 1;
+}
+
+message DispatchCommand {
+  string command_id = 1;
+  string asset_id = 2;
+  double power_kw = 3;
+  google.protobuf.Timestamp start_time = 4;
+  uint32 duration_seconds = 5;
+  string reason = 6;
+  bytes signature = 7;
+}
+
+message DispatchAck {
+  string command_id = 1;
+  bool accepted = 2;
+  string rejection_reason = 3;
+  google.protobuf.Timestamp executed_at = 4;
+}
+
+message DeviceStatus {
+  string device_id = 1;
+  string firmware_version = 2;
+  uint32 uptime_seconds = 3;
+  bool is_connected = 4;
+  bool shadow_mode_active = 5;
+  repeated string active_protocols = 6;
+}
+
+service EdgeService {
+  rpc ReportTelemetry(TelemetryBatch) returns (common.v1.Ack);
+  rpc ReceiveDispatch(DispatchCommand) returns (DispatchAck);
+  rpc GetStatus(common.v1.GetByIdRequest) returns (DeviceStatus);
+}

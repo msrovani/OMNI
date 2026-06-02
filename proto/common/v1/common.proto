@@ -1,0 +1,39 @@
+syntax = "proto3";
+package omnigrid.common.v1;
+import "google/protobuf/timestamp.proto";
+
+message DataPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  double value = 2;
+}
+
+message GetByIdRequest {
+  string id = 1;
+}
+
+message ListRequest {
+  uint32 page = 1;
+  uint32 page_size = 2;
+  string filter = 3;
+}
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}
+
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+  string id = 3;
+}
+
+message InstallationAddress {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip = 4;
+  string country = 5;
+  double latitude = 6;
+  double longitude = 7;
+}

@@ -1,0 +1,24 @@
+[package]
+name = "pde-kernel"
+version = "1.0.0"
+edition = "2024"
+description = "PDE Kernel — stochastic optimization hot-path (Rust native)"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+rand = "0.8"
+rand_distr = "0.4"
+tracing = "0.1"
+thiserror = "2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "optimizer_bench"
+harness = false

@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks: [omni-net]
+
+  postgres:
+    image: timescale/timescaledb:2-pg16
+    environment:
+      POSTGRES_DB: omnigrid
+      POSTGRES_USER: omni
+      POSTGRES_PASSWORD: omni_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [omni-net]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks: [omni-net]
+
+  pde-engine:
+    build: ./services/pde-engine
+    ports:
+      - "50051:50051"
+      - "8001:8001"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: omni
+      DB_PASSWORD: omni_dev
+      DB_NAME: omnigrid
+      NATS_URL: nats://nats:4222
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - nats
+      - postgres
+      - redis
+    networks: [omni-net]
+
+  asset-manager:
+    build: ./services/asset-manager
+    ports:
+      - "50052:50052"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: omni
+      DB_PASSWORD: omni_dev
+      DB_NAME: omnigrid
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+      - postgres
+    networks: [omni-net]
+
+  omni-cloud:
+    build: ./services/omni-cloud
+    ports:
+      - "50053:50053"
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+    networks: [omni-net]
+
+  market-connect:
+    build: ./services/market-connect
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: omni
+      DB_PASSWORD: omni_dev
+      DB_NAME: omnigrid
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+      - postgres
+    networks: [omni-net]
+
+  omni-box-simulator:
+    build: ./edge/omni-box-simulator
+    environment:
+      CLOUD_GW_URL: http://omni-cloud:50053
+      DEVICE_ID: "sim-001"
+    depends_on:
+      - omni-cloud
+    networks: [omni-net]
+
+networks:
+  omni-net:
+    driver: bridge
+
+volumes:
+  pgdata:

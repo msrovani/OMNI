@@ -1,0 +1,3 @@
+# ⚡ Omni-Grid Edge — CA certificate (auto-generated)
+# Execute: bash scripts/gen-edge-certs.sh
+# Or:      python scripts/gen-edge-certs.py

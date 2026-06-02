@@ -1,0 +1,53 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: pde-engine
+    url: http://pde-engine:8001
+    routes:
+      - name: pde-routes
+        paths:
+          - /api/v1/pde
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          hour: 1000
+
+  - name: asset-manager
+    url: http://asset-manager:50052
+    routes:
+      - name: asset-routes
+        paths:
+          - /api/v1/assets
+          - /api/v1/contracts
+
+  - name: market-connect
+    url: http://market-connect:8003
+    routes:
+      - name: market-routes
+        paths:
+          - /api/v1/market
+
+  - name: omni-cloud
+    url: http://omni-cloud:50053
+    routes:
+      - name: edge-routes
+        paths:
+          - /api/v1/edge
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      headers:
+        - Authorization
+        - Content-Type
+      exposed_headers:
+        - X-RateLimit-Remaining

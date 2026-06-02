@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pde-engine
+  namespace: omni-grid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pde-engine
+  template:
+    metadata:
+      labels:
+        app: pde-engine
+    spec:
+      containers:
+        - name: pde-engine
+          image: ghcr.io/omni-grid/pde-engine:latest
+          ports:
+            - containerPort: 50051
+            - containerPort: 8001
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: omni-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: omni-db-credentials
+                  key: password
+            - name: NATS_URL
+              value: nats://nats:4222
+            - name: REDIS_URL
+              value: redis://redis:6379
+          resources:
+            requests:
+              cpu: "1"
+              memory: "4Gi"
+            limits:
+              cpu: "2"
+              memory: "8Gi"

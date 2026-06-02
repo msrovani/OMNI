@@ -1,0 +1,36 @@
+syntax = "proto3";
+package omnigrid.asset.v1;
+import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
+
+message BatteryAsset {
+  string asset_id = 1;
+  string client_id = 2;
+  string manufacturer = 3;
+  string model = 4;
+  double capacity_kwh = 5;
+  double nominal_power_kw = 6;
+  double cycle_life = 7;
+  common.v1.InstallationAddress address = 8;
+  double min_soc_percent = 9;
+  double max_soc_percent = 10;
+  bool is_active = 11;
+}
+
+message Contract {
+  string contract_id = 1;
+  string client_id = 2;
+  string asset_id = 3;
+  double omni_revenue_share_percent = 4;
+  double min_backup_soc = 5;
+  google.protobuf.Timestamp start_date = 6;
+  google.protobuf.Timestamp end_date = 7;
+  bool auto_renew = 8;
+}
+
+service AssetService {
+  rpc RegisterAsset(BatteryAsset) returns (common.v1.GenericResponse);
+  rpc GetAsset(common.v1.GetByIdRequest) returns (BatteryAsset);
+  rpc ListAssets(common.v1.ListRequest) returns (stream BatteryAsset);
+  rpc RegisterContract(Contract) returns (common.v1.GenericResponse);
+}

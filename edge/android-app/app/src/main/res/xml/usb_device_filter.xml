@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FTDI FT232/FT231 USB-Serial -->
+    <usb-device vendor-id="1027" />
+    <!-- Prolific PL2303 USB-Serial -->
+    <usb-device vendor-id="1659" />
+    <!-- Silicon Labs CP210x -->
+    <usb-device vendor-id="4292" />
+    <!-- CH340/CH341 -->
+    <usb-device vendor-id="6790" />
+    <!-- Microchip MCP2515 CAN (via SPI->USB bridge) -->
+    <usb-device vendor-id="1240" />
+    <!-- ESP32 USB CDC -->
+    <usb-device vendor-id="4292" product-id="60000" />
+</resources>

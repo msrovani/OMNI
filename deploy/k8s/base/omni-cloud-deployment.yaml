@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omni-cloud
+  namespace: omni-grid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: omni-cloud
+  template:
+    metadata:
+      labels:
+        app: omni-cloud
+    spec:
+      containers:
+        - name: omni-cloud
+          image: ghcr.io/omni-grid/omni-cloud:latest
+          ports:
+            - containerPort: 50053
+          env:
+            - name: NATS_URL
+              value: nats://nats:4222
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omni-cloud
+  namespace: omni-grid
+spec:
+  selector:
+    app: omni-cloud
+  ports:
+    - name: grpc
+      port: 50053
+      targetPort: 50053

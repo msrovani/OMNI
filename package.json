@@ -1,0 +1,23 @@
+{
+  "name": "omni-grid",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "edge/omni-box-simulator"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "dev": "npm run dev --workspace packages/api-gateway",
+    "clean": "npm run clean --workspaces",
+    "pde:test": "npm run test --workspace packages/pde-engine",
+    "pde:dev": "npm run dev --workspace packages/pde-engine",
+    "start": "node scripts/orchestrator.mjs start",
+    "stop": "node scripts/orchestrator.mjs stop",
+    "status": "node scripts/orchestrator.mjs status"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

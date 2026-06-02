@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pio/
+build/
+.gradle/
+*.apk
+*.aab
+*.keystore
+local.properties
+
+# Rust
+target/
+Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# TLS certs (regenerate via scripts/gen-edge-certs.*)
+tls/*.crt
+tls/*.key
+tls/*.pem
+tls/*.pfx
+
+# Logs
+*.log
+npm-debug.log*
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Docker
+pgdata/
+
+# Generated
+docs/pitch/node_modules/
+docs/pitch/package-lock.json
+docs/pitch/package.json

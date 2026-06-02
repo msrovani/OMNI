@@ -1,0 +1,57 @@
+syntax = "proto3";
+package omnigrid.pde.v1;
+import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
+
+message ForecastRequest {
+  string asset_id = 1;
+  google.protobuf.Timestamp window_start = 2;
+  uint32 horizon_minutes = 3;
+}
+
+message ForecastResponse {
+  repeated common.v1.DataPoint predictions = 1;
+  double mae_percent = 2;
+}
+
+message OptimizeRequest {
+  repeated string asset_ids = 1;
+  google.protobuf.Timestamp window_start = 2;
+  uint32 horizon_minutes = 3;
+  OptimizationObjective objective = 4;
+}
+
+enum OptimizationObjective {
+  OPTIMIZE_PROFIT = 0;
+  OPTIMIZE_BATTERY_LIFE = 1;
+  OPTIMIZE_GRID_STABILITY = 2;
+  OPTIMIZE_BALANCED = 3;
+}
+
+message OptimizeResponse {
+  repeated DispatchCommand commands = 1;
+  double expected_profit_usd = 2;
+  double expected_degradation_cost = 3;
+}
+
+message DispatchCommand {
+  string asset_id = 1;
+  double power_kw = 2;
+  google.protobuf.Timestamp start_time = 3;
+  uint32 duration_seconds = 4;
+  string reason = 5;
+  bytes signature = 6;
+}
+
+message DispatchPlan {
+  repeated DispatchCommand commands = 1;
+  string plan_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+service PDEService {
+  rpc Forecast(ForecastRequest) returns (ForecastResponse);
+  rpc Optimize(OptimizeRequest) returns (OptimizeResponse);
+  rpc GetDispatchPlan(common.v1.GetByIdRequest) returns (DispatchPlan);
+  rpc ExecuteDispatch(DispatchPlan) returns (common.v1.Ack);
+}

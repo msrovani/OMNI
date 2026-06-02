@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OMNI-GRID — The Cognitive Energy Infrastructure</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --cyan: #00d4ff;
+      --purple: #7b2ff7;
+      --green: #50fa7b;
+      --orange: #ffb86c;
+      --red: #ff5555;
+      --pink: #ff79c6;
+      --bg-dark: #0a0a2e;
+    }
+    .reveal { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .reveal h1 { font-size: 3em; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .reveal h2 { color: var(--cyan); font-size: 1.8em; }
+    .reveal h3 { color: var(--purple); }
+    .reveal h4 { color: var(--orange); margin-bottom: 0.3em; }
+    .reveal .highlight { color: var(--orange); }
+    .reveal .green { color: var(--green); }
+    .reveal .red { color: var(--red); }
+    .reveal .pink { color: var(--pink); }
+    .reveal .small { font-size: 0.65em; }
+    .reveal .tiny { font-size: 0.5em; }
+    .reveal .columns { display: flex; gap: 1.5em; justify-content: center; align-items: flex-start; }
+    .reveal .columns > div { flex: 1; }
+    .reveal .kpi { padding: 0.5em 0.7em; background: rgba(255,255,255,0.05); border-radius: 10px; margin: 0.4em 0; border: 1px solid rgba(255,255,255,0.08); }
+    .reveal .kpi span { font-weight: bold; color: var(--green); }
+    .reveal .kpi .num { font-size: 1.3em; }
+    .reveal .metric { font-size: 2.8em; font-weight: 800; background: linear-gradient(135deg, var(--orange), #ff5555); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .reveal .sub { font-size: 0.7em; color: #6272a4; }
+    .reveal .tag { display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.7em; margin: 0.15em; font-weight: 600; }
+    .reveal .tag.blue { background: #00d4ff22; border: 1px solid var(--cyan); color: var(--cyan); }
+    .reveal .tag.purple { background: #7b2ff722; border: 1px solid var(--purple); color: var(--purple); }
+    .reveal .tag.green { background: #50fa7b22; border: 1px solid var(--green); color: var(--green); }
+    .reveal .tag.orange { background: #ffb86c22; border: 1px solid var(--orange); color: var(--orange); }
+    .reveal .tag.red { background: #ff555522; border: 1px solid var(--red); color: var(--red); }
+    .reveal .tag.pink { background: #ff79c622; border: 1px solid var(--pink); color: var(--pink); }
+    .reveal .badge { display: inline-block; padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.6em; font-weight: 700; vertical-align: middle; }
+    .reveal .badge.done { background: var(--green); color: #000; }
+    .reveal .badge.road { background: var(--orange); color: #000; }
+    .reveal .badge.dev { background: var(--cyan); color: #000; }
+    .reveal .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1em; margin: 0.5em 0; }
+    .reveal .card:hover { border-color: var(--cyan); }
+    .reveal .divider { width: 60px; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--purple)); margin: 0.5em auto; border-radius: 2px; }
+    .reveal .arrow { color: #6272a4; font-size: 1.5em; margin: 0 0.3em; }
+    .reveal .flow-row { display: flex; align-items: center; justify-content: center; gap: 0.3em; flex-wrap: wrap; }
+    .reveal .flow-item { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); border-radius: 6px; padding: 0.3em 0.6em; font-size: 0.7em; }
+    .reveal .chart-container { width: 100%; max-width: 700px; margin: 0 auto; }
+    .reveal .chart-container svg { width: 100%; height: auto; }
+    .reveal .progress-bar { height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0.5em 0; overflow: hidden; }
+    .reveal .progress-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.6em; font-weight: 700; color: #000; }
+    .reveal .glow { text-shadow: 0 0 20px rgba(0,212,255,0.3); }
+    .reveal .quote { font-style: italic; border-left: 3px solid var(--purple); padding-left: 1em; margin: 1em 0; color: #ccc; }
+    .reveal .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
+    .reveal .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1em; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal .anim { animation: fadeUp 0.6s ease-out; }
+    .reveal .slide-number { font-size: 0.5em !important; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ===== SLIDE 1: TITLE ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #05051a, #0d0d3a, #1a0a3a)">
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.05; background: radial-gradient(ellipse at 30% 50%, var(--cyan) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, var(--purple) 0%, transparent 60%);"></div>
+        <h1 style="font-size:4em;">⚡ OMNI-GRID</h1>
+        <div class="divider" style="width:120px;"></div>
+        <h3 style="font-size:1.4em;">The Cognitive Energy Infrastructure</h3>
+        <p style="margin-top:0.5em; font-size:1em; color:#6272a4;">O Sistema Operacional da Energia Elétrica</p>
+        <div style="margin-top:2.5em; display:flex; justify-content:center; gap:1.5em; flex-wrap:wrap;">
+          <span class="tag blue">13 REST + WS Endpoints</span>
+          <span class="tag purple">10 ESP32 Modules</span>
+          <span class="tag green">30+ Android Screens</span>
+          <span class="tag orange">~302 Tests</span>
+          <span class="tag pink">8 CI/CD Jobs</span>
+        </div>
+        <p style="margin-top:2em; font-size:0.55em; color:#444;">
+          JARBAS-OMNI-SOVEREIGN-INFINITY v5.1
+        </p>
+      </section>
+
+      <!-- ===== SLIDE 2: THE PROBLEM (with SVG chart) ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0000, #2a0000, #1a000a)">
+        <h2>🔥 O APAGÃO SILENCIOSO</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <div class="card">
+              <h4>🦆 Duck Curve</h4>
+              <p style="font-size:0.75em;">Solar oversupply at noon, demand peak at sunset — grid can't adapt</p>
+            </div>
+            <div class="card">
+              <h4>⚡ Frequency Instability</h4>
+              <p style="font-size:0.75em;">Renewables lack inertia — blackout risk in milliseconds</p>
+            </div>
+            <div class="card">
+              <h4>💰 CAPEX Bottleneck</h4>
+              <p style="font-size:0.75em;">Utilities need <span class="highlight">trillions</span> in substations — or Omni-Grid</p>
+            </div>
+          </div>
+          <div>
+            <svg viewBox="0 0 400 280" style="width:100%; max-width:400px;">
+              <defs>
+                <linearGradient id="duckFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffb86c44"/>
+                  <stop offset="100%" stop-color="#ffb86c00"/>
+                </linearGradient>
+              </defs>
+              <!-- Grid -->
+              <line x1="40" y1="240" x2="380" y2="240" stroke="#6272a4" stroke-width="1"/>
+              <line x1="40" y1="20" x2="40" y2="240" stroke="#6272a4" stroke-width="1"/>
+              <!-- Duck curve -->
+              <path d="M40,230 Q80,220 120,160 Q160,80 200,50 Q240,40 280,80 Q320,140 340,180 Q360,220 380,230"
+                    fill="none" stroke="#ffb86c" stroke-width="3"/>
+              <path d="M40,230 Q80,220 120,160 Q160,80 200,50 Q240,40 280,80 Q320,140 340,180 Q360,220 380,230"
+                    fill="url(#duckFill)"/>
+              <!-- Solar gen -->
+              <path d="M40,230 Q80,200 120,120 Q160,50 200,30 Q240,25 280,60 Q320,100 340,140 Q360,200 380,230"
+                    fill="none" stroke="#50fa7b" stroke-width="2" stroke-dasharray="4,3"/>
+              <!-- Labels -->
+              <text x="200" y="18" fill="#6272a4" font-size="10" text-anchor="middle">Duck Curve — Carga Líquida</text>
+              <text x="200" y="260" fill="#6272a4" font-size="8" text-anchor="middle">0h → 6h → 12h → 18h → 24h</text>
+              <text x="280" y="75" fill="#ffb86c" font-size="9">Carga</text>
+              <text x="80" y="150" fill="#50fa7b" font-size="8">Solar</text>
+              <text x="260" y="195" fill="#ff5555" font-size="8" font-weight="bold">Ramp 20GW/h</text>
+              <line x1="250" y1="190" x2="340" y2="210" stroke="#ff5555" stroke-width="1" stroke-dasharray="2,2"/>
+            </svg>
+          </div>
+        </div>
+        <p style="margin-top:0.5em; font-size:0.6em; color:#6272a4;">
+          $2T annual global electricity spend — yet the grid can't handle EVs + solar
+        </p>
+      </section>
+
+      <!-- ===== SLIDE 3: SOLUTION + SYSTEM ARCHITECTURE (with mermaid-like SVG) ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #001a00, #002a00, #001a10)">
+        <h2>🧠 A SOLUÇÃO: OMNI-GRID</h2>
+        <div class="divider"></div>
+        <svg viewBox="0 0 700 300" style="width:100%; max-width:700px;">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#6272a4"/>
+            </marker>
+          </defs>
+          <!-- Cloud layer -->
+          <rect x="220" y="10" width="260" height="50" rx="25" fill="#7b2ff722" stroke="#7b2ff7" stroke-width="1.5"/>
+          <text x="350" y="42" fill="#7b2ff7" font-size="13" text-anchor="middle" font-weight="bold">☁️ Omni-Cloud Gateway</text>
+          <!-- PDE Engine -->
+          <rect x="20" y="90" width="200" height="55" rx="8" fill="#00d4ff15" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="120" y="112" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="bold">🧮 PDE Engine</text>
+          <text x="120" y="130" fill="#6272a4" font-size="8" text-anchor="middle">Forecast • Optimize • Dispatch</text>
+          <!-- Market Connect -->
+          <rect x="250" y="90" width="200" height="55" rx="8" fill="#50fa7b15" stroke="#50fa7b" stroke-width="1.5"/>
+          <text x="350" y="112" fill="#50fa7b" font-size="11" text-anchor="middle" font-weight="bold">📊 Market Connect</text>
+          <text x="350" y="130" fill="#6272a4" font-size="8" text-anchor="middle">PLD • CCEE • ONS • SIGA</text>
+          <!-- API Gateway -->
+          <rect x="480" y="90" width="200" height="55" rx="8" fill="#ffb86c15" stroke="#ffb86c" stroke-width="1.5"/>
+          <text x="580" y="112" fill="#ffb86c" font-size="11" text-anchor="middle" font-weight="bold">🔌 API Gateway</text>
+          <text x="580" y="130" fill="#6272a4" font-size="8" text-anchor="middle">Fastify :3000 • JWT • RBAC</text>
+          <!-- Omni-Box -->
+          <rect x="100" y="180" width="180" height="55" rx="8" fill="#ff79c615" stroke="#ff79c6" stroke-width="1.5"/>
+          <text x="190" y="202" fill="#ff79c6" font-size="11" text-anchor="middle" font-weight="bold">📦 Omni-Box (Android)</text>
+          <text x="190" y="220" fill="#6272a4" font-size="8" text-anchor="middle">Kotlin • Rust JNI • SQLite</text>
+          <!-- ESP32 -->
+          <rect x="350" y="180" width="180" height="55" rx="8" fill="#ff555515" stroke="#ff5555" stroke-width="1.5"/>
+          <text x="440" y="202" fill="#ff5555" font-size="11" text-anchor="middle" font-weight="bold">🔧 ESP32 Co-Proc</text>
+          <text x="440" y="220" fill="#6272a4" font-size="8" text-anchor="middle">Modbus • CAN • BLE • IEC 61850</text>
+          <!-- Arrows -->
+          <line x1="220" y1="65" x2="120" y2="88" stroke="#6272a4" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="350" y1="65" x2="350" y2="88" stroke="#6272a4" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="580" y1="65" x2="580" y2="88" stroke="#6272a4" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="200" y1="145" x2="190" y2="178" stroke="#6272a4" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <line x1="440" y1="145" x2="440" y2="178" stroke="#6272a4" stroke-width="1" marker-end="url(#arrowhead)"/>
+          <!-- USB CDC arrow -->
+          <line x1="280" y1="207" x2="348" y2="207" stroke="#6272a4" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+          <text x="314" y="200" fill="#6272a4" font-size="7" text-anchor="middle">USB CDC</text>
+        </svg>
+        <div class="grid-3" style="margin-top:0.5em; font-size:0.55em;">
+          <div class="card">✅ <strong>PDE Engine</strong><br>Holt-Winters + Kalman<br>Monte Carlo 10k scenarios<br>CCEE/ONS Live Data</div>
+          <div class="card">✅ <strong>Omni-Box Hybrid</strong><br>Android + ESP32-S3<br>5-transport fallback chain<br>Shadow Autonomous Mode</div>
+          <div class="card">✅ <strong>Dashboard</strong><br>3 profiles (Ind/Res/Solar)<br>WebSocket Real-time<br>PWA + Multi-idioma</div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 4: PDE ENGINE — DETAILED ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #0a0a2e, #1a0a3e, #0a0a2e)">
+        <h2>🧮 PREDICTIVE DISPATCH ENGINE</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <h4>📈 Forecast Engine <span class="badge done">IMPLEMENTED</span></h4>
+            <div class="card">
+              <p style="font-size:0.7em;"><span class="green">●</span> Holt-Winters Triple Exponential Smoothing</p>
+              <p style="font-size:0.7em;"><span class="green">●</span> Kalman Filter for real-time correction</p>
+              <p style="font-size:0.7em;"><span class="green">●</span> Seasonal Naive Fallback (MAE &lt; 5%)</p>
+              <p style="font-size:0.7em;"><span class="tag orange">Roadmap</span> Transformers + LSTM (MAE &lt; 2%)</p>
+            </div>
+            <h4 style="margin-top:0.8em;">🎲 Stochastic Optimizer <span class="badge done">IMPLEMENTED</span></h4>
+            <div class="card">
+              <p style="font-size:0.7em;"><span class="green">●</span> Monte Carlo with 10,000 price paths</p>
+              <p style="font-size:0.7em;"><span class="green">●</span> PLD price band simulation per submercado</p>
+              <p style="font-size:0.7em;"><span class="green">●</span> SoH degradation cost: 0.001%/h of dispatch</p>
+            </div>
+          </div>
+          <div>
+            <h4>📡 Live Data Collectors <span class="badge done">IMPLEMENTED</span></h4>
+            <div class="card" style="font-size:0.65em;">
+              <p><span class="tag blue">CCEE</span> PLD Horário 2021-2026<br>JSON API → pricePerKwh (R$/kWh)</p>
+              <p><span class="tag purple">ONS</span> Curva de Carga<br>CSV → LoadRecord por submercado</p>
+              <p><span class="tag green">ANEEL SIGA</span> Geração<br>CSV → SigaGenerationAsset[]</p>
+            </div>
+            <h4 style="margin-top:0.8em;">📐 Loss Function</h4>
+            <div class="card" style="font-size:0.7em;">
+              ℒ = α·Profit − β·BatteryDegradation − γ·GridInstability
+              <p style="font-size:0.6em; color:#6272a4; margin-top:0.3em;">α, β, γ configuráveis por perfil de cliente</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 5: OMNIBOX HARDWARE ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a1a2e, #0a2a1a, #1a1a2e)">
+        <h2>📦 OMNI-BOX: EDGE GATEWAY</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <h4>🤖 Android App <span class="badge done">47 TASKS</span></h4>
+            <div class="card" style="font-size:0.6em;">
+              <p>📱 <strong>Kiosk/DPC</strong> — Device Owner, PIN SHA-256</p>
+              <p>🔗 <strong>ConnectionManager</strong> — 5-transport fallback</p>
+              <p>💾 <strong>TelemetryDatabase</strong> — SQLite store-and-forward</p>
+              <p>📷 <strong>MeterReader</strong> — CameraX + OCR meter reading</p>
+              <p>🔔 <strong>OmniBoxFcmService</strong> — FCM push (dispatch/alert/OTA/info)</p>
+              <p>🔋 <strong>PowerManager</strong> — 4 profiles (Perf/Balanced/PowerSave/Critical)</p>
+              <p>⏱️ <strong>TimeFallback</strong> — NTP→GPS→Cellular→Uptime</p>
+            </div>
+          </div>
+          <div>
+            <h4>⚙️ ESP32-S3 Co-Proc <span class="badge done">10 MODULES</span></h4>
+            <div class="card" style="font-size:0.6em;">
+              <p>🔌 <strong>Modbus RTU/TCP</strong> — Port 502, 8 registers, CRC-16 verified</p>
+              <p>🚌 <strong>CAN Bus 2.0</strong> — JBD/Daly/JK BMS @ 250kbps</p>
+              <p>📡 <strong>BLE GATT</strong> — Service UUID 4f4d4e49..., 3 characteristics</p>
+              <p>🌐 <strong>WiFi AP</strong> — "Omni-Box-AP" + REST endpoints</p>
+              <p>🏭 <strong>IEC 61850-9-2LE</strong> — SV multicast UDP port 6000, 4 channels</p>
+              <p>🛡️ <strong>Safety IEEE 1547</strong> — Trip &lt;100ms, auto-reclose 5min</p>
+              <p>📦 <strong>Shadow Mode</strong> — RTC buffer 60 entries, autonomous dispatch</p>
+              <p>⬇️ <strong>OTA</strong> — ArduinoOTA port 3232 + HTTP binary</p>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:0.5em; display:flex; justify-content:center; gap:0.5em; font-size:0.55em;">
+          <span class="tag blue">CDC → BLE → WiFi → USB → Offline</span>
+          <span class="tag green">TelemetryFrame 34B @ 115200 baud</span>
+          <span class="tag orange">HW Watchdog GPIO47 @ 1s</span>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 6: RUST CRATE + SECURITY ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0000, #2a1a00, #1a0000)">
+        <h2>🔐 RUST CORE + CYBER-FORTRESS</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <h4>🦀 Rust Crate <span class="badge done">1,066 LINES</span></h4>
+            <div class="card" style="font-size:0.65em;">
+              <p><span class="tag blue">lib.rs</span> Core state machine + exports</p>
+              <p><span class="tag blue">jni_bridge.rs</span> 13 JNI functions for Android</p>
+              <p><span class="tag blue">shadow.rs</span> RTC shadow engine</p>
+              <p><span class="tag blue">safety.rs</span> IEEE 1547 thresholds</p>
+              <p><span class="tag blue">protocol.rs</span> Modbus, CAN, IEC 61850</p>
+              <p><span class="tag blue">drivers/</span> can.rs, iec61850.rs, modbus.rs</p>
+              <p>✅ 28 inline tests + 23 integration tests</p>
+              <p>📦 Compiles as cdylib (Android NDK)</p>
+            </div>
+          </div>
+          <div>
+            <h4>🛡️ Security Layers</h4>
+            <div class="card" style="font-size:0.65em;">
+              <p><span class="tag green">IMPLEMENTED</span> mTLS X.509 certs per device</p>
+              <p><span class="tag green">IMPLEMENTED</span> SHA-256 PIN verification</p>
+              <p><span class="tag green">IMPLEMENTED</span> JWT HMAC-SHA256 with RBAC (4 roles)</p>
+              <p><span class="tag green">IMPLEMENTED</span> Zero Trust Architecture</p>
+              <p><span class="tag orange">ROADMAP</span> Blockchain dispatch audit trail</p>
+              <p><span class="tag orange">ROADMAP</span> Rate limiting + DoS protection</p>
+            </div>
+            <h4 style="margin-top:0.5em;">👤 RBAC Roles</h4>
+            <div class="card" style="font-size:0.6em;">
+              <p><span class="tag red">admin</span> Full access</p>
+              <p><span class="tag purple">operator</span> Dispatch + telemetry</p>
+              <p><span class="tag blue">viewer</span> Read-only</p>
+              <p><span class="tag green">device</span> Edge telemetry ingest</p>
+              <p><span class="tag orange">api_client</span> External API access</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 7: API GATEWAY ROUTES ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #001a1a, #002a2a, #001a1a)">
+        <h2>🔌 API GATEWAY — FASTIFY :3000</h2>
+        <div class="divider"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em; font-size:0.5em;">
+          <div class="card"><span class="tag green">GET</span> <strong>/health</strong><br><span class="tiny">No auth — System health</span></div>
+          <div class="card"><span class="tag orange">POST</span> <strong>/auth/login</strong><br><span class="tiny">No auth — JWT login</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/auth/me</strong><br><span class="tiny">User + permissions</span></div>
+          <div class="card"><span class="tag purple">WS</span> <strong>/ws?token=</strong><br><span class="tiny">WebSocket telemetry</span></div>
+          <div class="card"><span class="tag orange">POST</span> <strong>/api/v1/pde/forecast</strong><br><span class="tiny">Load/solar forecast</span></div>
+          <div class="card"><span class="tag orange">POST</span> <strong>/api/v1/pde/optimize</strong><br><span class="tiny">Stochastic optimization</span></div>
+          <div class="card"><span class="tag orange">POST</span> <strong>/api/v1/pde/dispatch/execute</strong><br><span class="tiny">Dispatch command</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/api/v1/pde/dispatch/history</strong><br><span class="tiny">Dispatch log</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/api/v1/market/prices</strong><br><span class="tiny">PLD by submercado</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/api/v1/market/submercados</strong><br><span class="tiny">4 ONS submercados</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/api/v1/market/regulatory</strong><br><span class="tiny">BR regulatory info</span></div>
+          <div class="card"><span class="tag orange">POST</span> <strong>/api/v1/edge/telemetry</strong><br><span class="tiny">Ingest telemetry</span></div>
+          <div class="card"><span class="tag green">GET</span> <strong>/api/v1/telemetry/latest</strong><br><span class="tiny">Latest readings</span></div>
+        </div>
+        <p style="margin-top:0.5em; font-size:0.5em; color:#6272a4;">Seed users: admin / operator / viewer / device-sim-001</p>
+      </section>
+
+      <!-- ===== SLIDE 8: MARKET + FINANCIALS (SVG chart) ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a1a00, #2a2a00, #1a1a00)">
+        <h2>💰 UNIT ECONOMICS + MRR PROJECTION</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <div class="card">
+              <h4>Industrial 100kWh</h4>
+              <table style="font-size:0.55em; width:100%; border-collapse:collapse;">
+                <tr><td>Arbitrage (80kWh × R$0.60)</td><td style="text-align:right; color:var(--green);">R$ 1,440/mo</td></tr>
+                <tr><td>Peak Shaving (success fee 30%)</td><td style="text-align:right; color:var(--green);">R$ 1,500/mo</td></tr>
+                <tr><td>Ancillary Services</td><td style="text-align:right; color:var(--green);">R$ 500/mo</td></tr>
+                <tr style="border-top:1px solid #444;"><td><strong>Total MRR/unit</strong></td><td style="text-align:right; color:var(--orange); font-weight:bold;">R$ 3,440/mo</td></tr>
+                <tr><td>Payback (R$150k CAPEX)</td><td style="text-align:right; color:var(--cyan);">3.6 years</td></tr>
+                <tr><td>LTV (12yr)</td><td style="text-align:right; color:var(--purple);">R$ 240k</td></tr>
+              </table>
+            </div>
+            <div class="card" style="margin-top:0.3em;">
+              <h4>Utility 1MWh</h4>
+              <table style="font-size:0.55em; width:100%; border-collapse:collapse;">
+                <tr><td>Revenue (annual)</td><td style="text-align:right; color:var(--green);">US$ 180-250k</td></tr>
+                <tr><td>O&amp;M Cost</td><td style="text-align:right; color:var(--red);">US$ 15k</td></tr>
+                <tr><td>CAC</td><td style="text-align:right; color:var(--orange);">US$ 30k</td></tr>
+                <tr style="border-top:1px solid #444;"><td><strong>LTV/CAC</strong></td><td style="text-align:right; color:var(--green); font-weight:bold;">&gt; 80x</td></tr>
+              </table>
+            </div>
+          </div>
+          <div>
+            <svg viewBox="0 0 300 250" style="width:100%;">
+              <text x="150" y="18" fill="#6272a4" font-size="10" text-anchor="middle">MRR Growth (R$)</text>
+              <!-- Y axis -->
+              <line x1="40" y1="220" x2="290" y2="220" stroke="#6272a4" stroke-width="1"/>
+              <line x1="40" y1="20" x2="40" y2="220" stroke="#6272a4" stroke-width="1"/>
+              <!-- Y labels -->
+              <text x="38" y="225" fill="#6272a4" font-size="7" text-anchor="end">0</text>
+              <text x="38" y="160" fill="#6272a4" font-size="7" text-anchor="end">100k</text>
+              <text x="38" y="95" fill="#6272a4" font-size="7" text-anchor="end">200k</text>
+              <text x="38" y="30" fill="#6272a4" font-size="7" text-anchor="end">340k</text>
+              <!-- Bars -->
+              <rect x="60" y="215" width="25" height="5" fill="#00d4ff" rx="2"/>
+              <text x="72" y="235" fill="#6272a4" font-size="6" text-anchor="middle">M3</text>
+              <rect x="100" y="215" width="25" height="5" fill="#00d4ff" rx="2"/>
+              <text x="112" y="235" fill="#6272a4" font-size="6" text-anchor="middle">M6</text>
+              <rect x="140" y="175" width="25" height="45" fill="#7b2ff7" rx="2"/>
+              <text x="152" y="235" fill="#6272a4" font-size="6" text-anchor="middle">M9</text>
+              <text x="152" y="170" fill="#7b2ff7" font-size="7" text-anchor="middle">68k</text>
+              <rect x="180" y="135" width="25" height="85" fill="#50fa7b" rx="2"/>
+              <text x="192" y="235" fill="#6272a4" font-size="6" text-anchor="middle">M12</text>
+              <text x="192" y="130" fill="#50fa7b" font-size="7" text-anchor="middle">340k</text>
+              <!-- Trend line -->
+              <polyline points="72,215 112,215 152,175 192,135" fill="none" stroke="#ffb86c" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <!-- B/E marker -->
+              <line x1="195" y1="218" x2="230" y2="218" stroke="#ff5555" stroke-width="1"/>
+              <text x="245" y="222" fill="#ff5555" font-size="7">Break-even M14</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 9: BRAZILIAN MARKET ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #002010, #003020, #002010)">
+        <h2>🇧🇷 BRAZILIAN ENERGY MARKET</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <h4>4 Submercados PLD</h4>
+            <table style="font-size:0.55em; width:100%; border-collapse:collapse;">
+              <tr style="border-bottom:1px solid #333;"><th>Submercado</th><th>Estados</th><th>Peso</th><th>Fator</th></tr>
+              <tr><td>SE/CO</td><td>SP,RJ,MG,ES,DF,GO,MT,MS</td><td>~60%</td><td>1.0</td></tr>
+              <tr><td>Sul</td><td>PR,SC,RS</td><td>~15%</td><td>0.95</td></tr>
+              <tr><td>Nordeste</td><td>BA,PE,CE,RN,PB,AL,SE,PI,MA</td><td>~15%</td><td>0.85</td></tr>
+              <tr><td>Norte</td><td>PA,AM,RO,AC,RR,AP,TO</td><td>~10%</td><td>1.15</td></tr>
+            </table>
+            <div class="card" style="margin-top:0.5em; font-size:0.55em;">
+              <p><strong>PLD:</strong> Piso R$ 69,07 | Teto R$ 599,31/MWh</p>
+              <p><strong>Bandeira:</strong> Verde (seca) | Amarela +R$18,85 | Vermelha +R$44,63 / +R$78,77</p>
+            </div>
+          </div>
+          <div>
+            <h4>11 Utilities + 5 Traders</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em; font-size:0.5em;">
+              <div class="card">Enel SP • CEMIG • CPFL</div>
+              <div class="card">Light • EDP • Copel</div>
+              <div class="card">Celesc • Coelba • Neoenergia PE</div>
+              <div class="card">Equatorial PA • Energisa MT</div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em; margin-top:0.3em; font-size:0.5em;">
+              <div class="card">Tradener</div>
+              <div class="card">Comerc Energia</div>
+              <div class="card">Ecom Energia</div>
+              <div class="card">Safira Energia</div>
+              <div class="card" style="grid-column:span 2;">Delta Energia</div>
+            </div>
+            <h4 style="margin-top:0.5em;">PLD Price Bands</h4>
+            <table style="font-size:0.5em; width:100%; border-collapse:collapse;">
+              <tr style="border-bottom:1px solid #333;"><th>Period</th><th>Hours</th><th>R$/MWh</th></tr>
+              <tr><td>Madrugada</td><td>23h-5h</td><td>69-149</td></tr>
+              <tr><td>Entre-ponta</td><td>6h-9h/21h-22h</td><td>100-200</td></tr>
+              <tr><td>Comercial</td><td>10h-17h</td><td>200-349</td></tr>
+              <tr><td>Ponta</td><td>18h-20h</td><td>300-549</td></tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 10: DASHBOARD + TESTING ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0a2e, #2a1a3e, #1a0a2e)">
+        <h2>📊 DASHBOARD + TEST COVERAGE</h2>
+        <div class="divider"></div>
+        <div class="columns">
+          <div>
+            <h4>🖥️ Web Dashboard <span class="badge done">PWA</span></h4>
+            <div class="card" style="font-size:0.6em;">
+              <p>📡 Polls :3000 every 5s + WebSocket real-time</p>
+              <p>👤 <strong>3 profiles:</strong> Industrial, Residencial, Solar</p>
+              <p>🌐 Multi-idioma PT-BR/EN (localStorage)</p>
+              <p>📦 PWA: sw.js + manifest.json + beforeinstallprompt</p>
+              <p>📈 4 KPI cards: Receita, Eficiência, CO₂, Disparos</p>
+              <p>🔔 Error banners per panel + retry buttons</p>
+            </div>
+          </div>
+          <div>
+            <h4>🧪 ~302 Tests Across Stack</h4>
+            <svg viewBox="0 0 300 200" style="width:100%;">
+              <text x="150" y="18" fill="#6272a4" font-size="10" text-anchor="middle">Test Distribution</text>
+              <!-- Bar: PDE -->
+              <rect x="20" y="150" width="36" height="40" fill="#00d4ff" rx="3"/>
+              <text x="38" y="165" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">50</text>
+              <text x="38" y="195" fill="#6272a4" font-size="7" text-anchor="middle">PDE</text>
+              <!-- Bar: Android -->
+              <rect x="66" y="120" width="36" height="70" fill="#7b2ff7" rx="3"/>
+              <text x="84" y="138" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">54</text>
+              <text x="84" y="195" fill="#6272a4" font-size="7" text-anchor="middle">Android</text>
+              <!-- Bar: ESP32 -->
+              <rect x="112" y="128" width="36" height="62" fill="#ff5555" rx="3"/>
+              <text x="130" y="146" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">42</text>
+              <text x="130" y="195" fill="#6272a4" font-size="7" text-anchor="middle">ESP32</text>
+              <!-- Bar: Rust -->
+              <rect x="158" y="138" width="36" height="52" fill="#ffb86c" rx="3"/>
+              <text x="176" y="155" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">51</text>
+              <text x="176" y="195" fill="#6272a4" font-size="7" text-anchor="middle">Rust</text>
+              <!-- Bar: Integration -->
+              <rect x="204" y="148" width="36" height="42" fill="#50fa7b" rx="3"/>
+              <text x="222" y="163" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">31</text>
+              <text x="222" y="195" fill="#6272a4" font-size="7" text-anchor="middle">Integ</text>
+              <!-- Bar: Others -->
+              <rect x="250" y="155" width="36" height="35" fill="#ff79c6" rx="3"/>
+              <text x="268" y="168" fill="#fff" font-size="9" text-anchor="middle" font-weight="bold">74</text>
+              <text x="268" y="195" fill="#6272a4" font-size="7" text-anchor="middle">Others</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 11: CI/CD PIPELINE ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #0a0a2e, #0a2a2e, #0a0a2e)">
+        <h2>⚙️ CI/CD — 8 JOBS</h2>
+        <div class="divider"></div>
+        <svg viewBox="0 0 700 200" style="width:100%; max-width:700px;">
+          <!-- Pipeline flow -->
+          <rect x="10" y="10" width="100" height="40" rx="20" fill="#7b2ff733" stroke="#7b2ff7" stroke-width="1.5"/>
+          <text x="60" y="35" fill="#7b2ff7" font-size="11" text-anchor="middle" font-weight="bold">lint</text>
+          <text x="200" y="35" fill="#6272a4" font-size="8" text-anchor="middle">npm run lint</text>
+
+          <rect x="10" y="70" width="100" height="40" rx="20" fill="#00d4ff33" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="60" y="95" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="bold">test-ts</text>
+          <text x="200" y="95" fill="#6272a4" font-size="8" text-anchor="middle">npm test (vitest)</text>
+
+          <rect x="250" y="10" width="120" height="40" rx="20" fill="#50fa7b33" stroke="#50fa7b" stroke-width="1.5"/>
+          <text x="310" y="35" fill="#50fa7b" font-size="11" text-anchor="middle" font-weight="bold">test-rust</text>
+          <text x="440" y="35" fill="#6272a4" font-size="8" text-anchor="middle">cargo test</text>
+
+          <rect x="250" y="70" width="120" height="40" rx="20" fill="#ffb86c33" stroke="#ffb86c" stroke-width="1.5"/>
+          <text x="310" y="95" fill="#ffb86c" font-size="11" text-anchor="middle" font-weight="bold">test-android</text>
+          <text x="440" y="95" fill="#6272a4" font-size="8" text-anchor="middle">./gradlew test</text>
+
+          <rect x="480" y="10" width="120" height="40" rx="20" fill="#ff79c633" stroke="#ff79c6" stroke-width="1.5"/>
+          <text x="540" y="35" fill="#ff79c6" font-size="11" text-anchor="middle" font-weight="bold">build-ts</text>
+          <text x="650" y="35" fill="#6272a4" font-size="8" text-anchor="middle">npm run build</text>
+
+          <rect x="480" y="70" width="120" height="40" rx="20" fill="#ff555533" stroke="#ff5555" stroke-width="1.5"/>
+          <text x="540" y="95" fill="#ff5555" font-size="11" text-anchor="middle" font-weight="bold">build-esp32</text>
+          <text x="650" y="95" fill="#6272a4" font-size="8" text-anchor="middle">pio run + artifact</text>
+
+          <rect x="250" y="140" width="200" height="40" rx="20" fill="#00d4ff22" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="350" y="165" fill="#00d4ff" font-size="11" text-anchor="middle" font-weight="bold">deploy-docs → GitHub Pages</text>
+        </svg>
+        <p style="margin-top:0.5em; font-size:0.55em; color:#6272a4;">
+          GitHub Actions • Node 24 • Rust stable • Java 17 • PlatformIO • Upload artifacts (ESP32 firmware)
+        </p>
+      </section>
+
+      <!-- ===== SLIDE 12: ROADMAP ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0a00, #2a1a00, #1a0a00)">
+        <h2>🗺️ 36-MONTH ROADMAP TO $150M ARR</h2>
+        <div class="divider"></div>
+        <div class="grid-3" style="font-size:0.6em;">
+          <div class="card" style="border-color:#ffb86c;">
+            <h4 style="color:#ffb86c;">🔥 Year 1 — Ignition</h4>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%; background:linear-gradient(90deg, #ffb86c, #ff5555);">DONE</div></div>
+            <p>✅ PDE Engine + Live Collectors</p>
+            <p>✅ Omni-Box HW + Android App</p>
+            <p>✅ Dashboard + API Gateway</p>
+            <p>✅ CI/CD Pipeline</p>
+            <p>🎯 10 industrial sites</p>
+            <p>👥 Team: 12 engineers</p>
+          </div>
+          <div class="card" style="border-color:#7b2ff7;">
+            <h4 style="color:#7b2ff7;">🚀 Year 2 — Blitzscaling</h4>
+            <div class="progress-bar"><div class="progress-fill" style="width:15%; background:linear-gradient(90deg, #7b2ff7, #00d4ff);">15%</div></div>
+            <p>🔜 V2G Fleet Integration</p>
+            <p>🔜 Free Market (ACL) Trading License</p>
+            <p>🔜 ONS Ancillary Services</p>
+            <p>🎯 500MWh under management</p>
+            <p>👥 Team: 100 collaborators</p>
+          </div>
+          <div class="card" style="border-color:#50fa7b;">
+            <h4 style="color:#50fa7b;">🏆 Year 3 — Dominance</h4>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%; background:linear-gradient(90deg, #50fa7b, #00d4ff);">0%</div></div>
+            <p>🌎 Texas ERCOT Expansion</p>
+            <p>🌏 Australia AEMO Expansion</p>
+            <p>🎯 2GWh under management</p>
+            <p>💰 ARR US$ 150M</p>
+            <p>📈 IPO NASDAQ or Acquisition $1.5B+</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SLIDE 13: EXIT STRATEGY + THE ASK ===== -->
+      <section data-background-gradient="linear-gradient(135deg, #0a0a2e, #1a0a2e, #0a0a2e)">
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.05; background: radial-gradient(ellipse at 50% 50%, var(--cyan) 0%, transparent 60%), radial-gradient(ellipse at 30% 30%, var(--purple) 0%, transparent 60%);"></div>
+        <h2>🎯 EXIT STRATEGY</h2>
+        <div class="divider"></div>
+        <div class="grid-3" style="font-size:0.6em;">
+          <div class="card">
+            <h4>🛢️ Big Oil</h4>
+            <p>Shell, BP, Equinor<br><span class="tiny">Hydrocarbon → Electron transition</span></p>
+          </div>
+          <div class="card">
+            <h4>☁️ Big Tech</h4>
+            <p>Amazon, Google, Microsoft<br><span class="tiny">Data center load management</span></p>
+          </div>
+          <div class="card">
+            <h4>🚗 EV Giants</h4>
+            <p>Tesla, BYD, VW<br><span class="tiny">Software verticalization on batteries</span></p>
+          </div>
+        </div>
+        <div style="margin-top:1.5em;">
+          <div class="card" style="border-color:var(--cyan); max-width:400px; margin:0 auto;">
+            <p style="font-size:0.8em;"><span class="highlight">📈 IPO on NASDAQ</span></p>
+            <p style="font-size:0.6em; color:#6272a4;">The first data-driven utility — valued at &gt; US$ 1.5B</p>
+          </div>
+        </div>
+        <div style="margin-top:1.5em;">
+          <p style="font-size:1em;" class="green glow">"O bilhão não é o fim — é o combustível."</p>
+          <p style="font-size:0.6em; color:#6272a4; margin-top:1em;">
+            JARBAS v4.0 | Arquiteto de Sistemas Soberanos<br>
+            <span class="tiny">Protocolo Supremo — 820+ lines of engineering &amp; strategy</span>
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.min.js"></script>
+  <script>
+    Reveal.initialize({
+      controls: true,
+      progress: true,
+      hash: true,
+      slideNumber: "c/t",
+      autoAnimate: true,
+      plugins: [ RevealHighlight ]
+    });
+  </script>
+</body>
+</html>

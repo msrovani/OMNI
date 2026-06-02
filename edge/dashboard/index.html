@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMNI-GRID Cognitive Energy Infrastructure</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0E1A;
+  --bg2: #111627;
+  --bg3: #1A1F35;
+  --accent: #1A73E8;
+  --green: #34A853;
+  --red: #EA4335;
+  --yellow: #FBBC04;
+  --text: #C8D0E0;
+  --text-dim: #6A7290;
+  --border: #1E2440;
+  --radius: 8px;
+}
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+}
+.dashboard { max-width: 1600px; margin: 0 auto; display: grid; gap: 12px; }
+
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: var(--bg2); border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+.status-dot {
+  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+  background: var(--red); transition: background 0.3s, box-shadow 0.3s;
+}
+.status-dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.status-dot.offline { background: var(--red); box-shadow: 0 0 10px var(--red); }
+.header-time { font-size: 12px; color: var(--text-dim); }
+
+/* Status Bar */
+.status-bar {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 16px; display: flex; flex-direction: column; gap: 2px;
+}
+.stat-card .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; }
+.stat-card .value { font-size: 20px; font-weight: 600; }
+.stat-card .value.green { color: var(--green); }
+.stat-card .value.red { color: var(--red); }
+.stat-card .value.yellow { color: var(--yellow); }
+.stat-card .value.accent { color: var(--accent); }
+.stat-card .sub { font-size: 11px; color: var(--text-dim); }
+
+/* Grid Layout */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+
+/* Panels */
+.panel {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  display: flex; flex-direction: column;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.panel-header .badge {
+  font-size: 9px; padding: 2px 8px; border-radius: 10px;
+  background: var(--accent); color: #fff;
+}
+.panel-body { padding: 14px; flex: 1; font-size: 12px; overflow-y: auto; }
+
+/* Forecast Chart */
+.forecast-chart { display: flex; align-items: flex-end; height: 100px; gap: 3px; margin: 6px 0; }
+.forecast-bar { flex: 1; border-radius: 3px 3px 0 0; position: relative; transition: height 0.6s ease; min-height: 2px; }
+.forecast-bar .bar-label { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--text-dim); white-space: nowrap; }
+.forecast-bar .bar-val { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--text); }
+
+/* Optimizer */
+.opt-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.opt-row:last-child { border: none; }
+.opt-row .key { color: var(--text-dim); }
+.opt-row .val { font-weight: 500; }
+
+/* Telemetry cards */
+.telemetry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.tele-item {
+  background: var(--bg3); border-radius: 6px; padding: 10px; text-align: center;
+  transition: background 0.3s;
+}
+.tele-item .t-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; }
+.tele-item .t-value { font-size: 18px; font-weight: 600; margin: 4px 0; }
+.tele-item .t-value.green { color: var(--green); }
+.tele-item .t-value.yellow { color: var(--yellow); }
+.tele-item .t-value.red { color: var(--red); }
+.tele-item .t-unit { font-size: 10px; color: var(--text-dim); }
+
+/* SoC Gauge SVG */
+.soc-gauge-wrap { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 6px 0; }
+.soc-battery { width: 48px; height: 100px; }
+.soc-battery-bg { fill: none; stroke: var(--border); stroke-width: 2; rx: 4; }
+.soc-battery-cap { fill: var(--border); }
+.soc-fill { transition: height 0.8s ease, fill 0.4s; }
+.soc-text { font-size: 11px; font-weight: 600; fill: var(--text); }
+.soc-label { font-size: 9px; fill: var(--text-dim); }
+
+/* Market */
+.market-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.market-table th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+.market-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.market-table .up { color: var(--green); }
+.market-table .down { color: var(--red); }
+.arb-box {
+  background: var(--bg3); border-radius: 6px; padding: 8px 10px; margin-top: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.arb-box .arb-label { font-size: 9px; color: var(--text-dim); }
+.arb-box .arb-value { font-size: 14px; font-weight: 600; color: var(--green); }
+
+/* Auth */
+.auth-tabs { display: flex; gap: 0; margin-bottom: 10px; }
+.auth-tab { padding: 6px 14px; font-size: 10px; font-family: inherit; background: var(--bg3); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; transition: 0.2s; }
+.auth-tab:first-child { border-radius: 4px 0 0 4px; }
+.auth-tab:last-child { border-radius: 0 4px 4px 0; }
+.auth-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.auth-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.auth-table th { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-size: 9px; text-transform: uppercase; }
+.auth-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.perm-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 4px; }
+.perm-cell { padding: 4px 8px; border-radius: 4px; font-size: 9px; background: var(--bg3); display: flex; justify-content: space-between; }
+.perm-cell .perm-check { width: 14px; height: 14px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
+.perm-check.yes { background: var(--green); color: #fff; }
+.perm-check.no { background: var(--bg); color: var(--text-dim); }
+
+/* Log */
+.log-container { max-height: 200px; overflow-y: auto; font-size: 11px; }
+.log-container::-webkit-scrollbar { width: 4px; }
+.log-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.log-entry { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; gap: 8px; }
+.log-time { color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+.log-level { padding: 0 6px; border-radius: 3px; font-size: 9px; font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
+.log-level.info { background: rgba(26,115,232,0.2); color: var(--accent); }
+.log-level.warn { background: rgba(251,188,4,0.2); color: var(--yellow); }
+.log-level.error { background: rgba(234,67,53,0.2); color: var(--red); }
+.log-level.success { background: rgba(52,168,83,0.2); color: var(--green); }
+.log-msg { word-break: break-word; }
+
+/* Login modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px; width: 340px; max-width: 90vw;
+}
+.modal h2 { font-size: 14px; margin-bottom: 14px; color: var(--text); }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input {
+  width: 100%; padding: 8px 10px; font-family: inherit; font-size: 12px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+  outline: none; transition: 0.2s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.btn {
+  padding: 8px 18px; font-family: inherit; font-size: 11px; font-weight: 600;
+  border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #1557B0; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+.btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+
+/* Login bar */
+.login-bar { display: flex; align-items: center; gap: 10px; }
+.user-badge { font-size: 10px; color: var(--text-dim); padding: 3px 8px; background: var(--bg3); border-radius: 4px; }
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes flashGreen { 0% { background: rgba(52,168,83,0.3); } 100% { background: transparent; } }
+@keyframes flashRed { 0% { background: rgba(234,67,53,0.3); } 100% { background: transparent; } }
+.pulse { animation: pulse 1.5s infinite; }
+.log-entry { animation: slideIn 0.2s ease; }
+.loading { color: var(--text-dim); font-size: 11px; padding: 20px 0; text-align: center; }
+.warn-row { color: var(--red); text-align: center; font-style: italic; padding: 10px 0; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* error + loading states */
+.error-msg { color: var(--red); font-size: 11px; padding: 8px; text-align: center; }
+.loading-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; gap:8px; }
+.loading-panel .spinner {
+  width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-panel .msg { font-size: 11px; color: var(--text-dim); }
+.error-banner {
+  display: none; align-items: center; gap: 10px; padding: 8px 14px; margin-bottom: 8px;
+  background: rgba(234,67,53,0.12); border: 1px solid rgba(234,67,53,0.3);
+  border-radius: var(--radius); font-size: 11px;
+}
+.error-banner.show { display: flex; }
+.error-banner .err-icon { color: var(--red); font-weight: bold; }
+.error-banner .err-text { flex: 1; color: var(--red); }
+.error-banner .err-retry {
+  padding: 4px 12px; font-family: inherit; font-size: 10px; font-weight: 600;
+  background: var(--red); color: #fff; border: none; border-radius: 4px; cursor: pointer;
+}
+.error-banner .err-retry:hover { opacity: 0.8; }
+.error-banner .err-dismiss {
+  background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px;
+}
+.connection-banner {
+  display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  padding: 8px; text-align: center; background: rgba(234,67,53,0.9); color: #fff;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+}
+.connection-banner.show { display: block; }
+
+/* ─── Profile Selector ─── */
+.profile-select { display:flex; gap:4px; }
+.profile-btn {
+  padding:4px 10px; font-family:inherit; font-size:10px; font-weight:600;
+  background:var(--bg3); border:1px solid var(--border); color:var(--text-dim);
+  border-radius:4px; cursor:pointer; transition:0.2s;
+}
+.profile-btn:hover { border-color:var(--accent); color:var(--text); }
+.profile-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* ─── Perfil Residencial ─── */
+.profile-residencial .grid-pde,
+.profile-residencial .grid-market,
+.profile-residencial .panel-auth,
+.profile-residencial .panel-pld,
+.profile-residencial .panel-submercados { display:none; }
+
+/* ─── Perfil Solar ─── */
+.profile-solar .panel-pde,
+.profile-solar .panel-pld,
+.profile-solar .panel-auth,
+.profile-solar .panel-submercados { display:none; }
+
+/* ─── Perfil Industrial ─── */
+.profile-industrial .panel-pld { display:none; }
+
+/* ─── KPI Cards ─── */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+  position: relative; overflow: hidden;
+}
+.kpi-card .kpi-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; }
+.kpi-card .kpi-value { font-size: 24px; font-weight: 700; }
+.kpi-card .kpi-sub { font-size: 10px; color: var(--text-dim); }
+.kpi-card .kpi-trend { font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 2px; }
+.kpi-card .kpi-trend.up { color: var(--green); }
+.kpi-card .kpi-trend.down { color: var(--red); }
+.kpi-card .kpi-icon { position: absolute; right: 14px; top: 14px; font-size: 20px; opacity: 0.15; }
+@keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.kpi-card .kpi-value { animation: countUp 0.6s ease; }
+
+/* Language toggle */
+.lang-btn {
+  padding:2px 8px; font-family:inherit; font-size:10px; font-weight:600;
+  background:var(--bg3); border:1px solid var(--border); color:var(--text-dim);
+  border-radius:4px; cursor:pointer; transition:0.2s;
+}
+.lang-btn:hover { border-color:var(--accent); color:var(--text); }
+
+/* PWA install button */
+.install-btn {
+  padding:3px 10px; font-family:inherit; font-size:9px; font-weight:600;
+  background:var(--accent); color:#fff; border:none; border-radius:4px;
+  cursor:pointer; transition:0.2s; display:none;
+}
+.install-btn:hover { background:#1557B0; }
+.install-btn.show { display:inline-flex; align-items:center; gap:4px; }
+
+/* WebSocket status indicator */
+.ws-indicator {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:4px; font-size:9px; font-weight:600;
+  letter-spacing:0.5px;
+}
+.ws-indicator.connected { background:rgba(52,168,83,0.15); color:var(--green); }
+.ws-indicator.disconnected { background:rgba(234,67,53,0.15); color:var(--red); }
+.ws-indicator .ws-dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+.ws-indicator.connected .ws-dot { background:var(--green); box-shadow:0 0 6px var(--green); }
+.ws-indicator.disconnected .ws-dot { background:var(--red); }
+</style>
+</head>
+<body>
+<div class="dashboard profile-industrial" id="dashboard">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <span class="status-dot offline" id="statusDot"></span>
+      <h1>OMNI-GRID COGNITIVE ENERGY INFRASTRUCTURE</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="install-btn" id="installBtn">⬇ Instalar</button>
+      <button class="lang-btn" id="langBtn">PT</button>
+      <div class="profile-select" id="profileSelect">
+        <button class="profile-btn active" data-profile="industrial">Industrial</button>
+        <button class="profile-btn" data-profile="residencial">Residencial</button>
+        <button class="profile-btn" data-profile="solar">Solar</button>
+      </div>
+      <span class="ws-indicator disconnected" id="wsIndicator"><span class="ws-dot"></span>WS</span>
+      <span class="header-time" id="headerTime"></span>
+      <div class="login-bar">
+        <span class="user-badge" id="userBadge" style="display:none;"></span>
+        <button class="btn btn-ghost" id="loginBtn" style="font-size:10px;padding:4px 12px;">Login</button>
+        <button class="btn btn-ghost" id="logoutBtn" style="font-size:10px;padding:4px 12px;display:none;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Connection lost banner -->
+  <div class="connection-banner" id="connBanner">⚠ CONEXÃO PERDIDA — tentando reconectar...</div>
+
+  <!-- Status Bar -->
+  <div class="status-bar" id="statusBar">
+    <div class="stat-card"><span class="label">API Status</span><span class="value yellow" id="apiStatus">Checking...</span><span class="sub" id="apiLatency"></span></div>
+    <div class="stat-card"><span class="label">Bus Status</span><span class="value" id="busStatus">--</span><span class="sub" id="busLoad"></span></div>
+    <div class="stat-card"><span class="label">Edge Devices</span><span class="value" id="edgeCount">--</span><span class="sub" id="edgeOnline"></span></div>
+    <div class="stat-card"><span class="label">Total Load</span><span class="value" id="totalLoad">--</span><span class="sub" id="loadTrend">MW</span></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-bar" id="kpiBar">
+    <div class="kpi-card"><span class="kpi-icon">💰</span><span class="kpi-label" data-i18n="kpi_revenue">Receita</span><span class="kpi-value accent" id="kpiRevenue">R$ 0</span><span class="kpi-sub" id="kpiRevenueTrend"></span></div>
+    <div class="kpi-card"><span class="kpi-icon">⚡</span><span class="kpi-label" data-i18n="kpi_efficiency">Eficiência</span><span class="kpi-value green" id="kpiEfficiency">0%</span><span class="kpi-sub" id="kpiEfficiencyTrend"></span></div>
+    <div class="kpi-card"><span class="kpi-icon">🌱</span><span class="kpi-label" data-i18n="kpi_co2">CO₂ Evitado</span><span class="kpi-value green" id="kpiCo2">0 t</span><span class="kpi-sub" id="kpiCo2Trend"></span></div>
+    <div class="kpi-card"><span class="kpi-icon">📊</span><span class="kpi-label" data-i18n="kpi_dispatches">Disparos</span><span class="kpi-value accent" id="kpiDispatches">0</span><span class="kpi-sub" id="kpiDispatchesTrend"></span></div>
+  </div>
+
+  <!-- Main Grid: PDE Engine + Telemetry -->
+  <div class="grid-2">
+    <!-- PDE Engine -->
+    <div class="panel">
+      <div class="panel-header">PDE Engine <span class="badge" id="pdeBadge">Initializing</span></div>
+      <div class="error-banner" id="pdeError"><span class="err-icon">⚠</span><span class="err-text" id="pdeErrorText">Falha ao carregar PDE</span><button class="err-retry" onclick="retryPDE()">Retry</button><button class="err-dismiss" onclick="this.parentElement.classList.remove('show')">✕</button></div>
+      <div class="panel-body" id="pdeBody">
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;">Load Forecast (24h)</div>
+        <div class="forecast-chart" id="forecastChart"></div>
+        <div style="font-size:10px;color:var(--text-dim);margin:10px 0 4px;">Optimizer</div>
+        <div id="optimizerResults">
+          <div class="opt-row"><span class="key">Solution Status</span><span class="val" id="optStatus">--</span></div>
+          <div class="opt-row"><span class="key">Objective Value</span><span class="val" id="optObjective">--</span></div>
+          <div class="opt-row"><span class="key">Iterations</span><span class="val" id="optIter">--</span></div>
+          <div class="opt-row"><span class="key">Dispatch Plan</span><span class="val" id="optDispatch">--</span></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin:10px 0 4px;">Dispatch History (last 6)</div>
+        <div id="dispatchHistory" style="font-size:11px;"></div>
+      </div>
+    </div>
+
+    <!-- Telemetry -->
+    <div class="panel">
+      <div class="panel-header">Telemetry <span class="badge" id="teleBadge">Live</span></div>
+      <div class="error-banner" id="teleError"><span class="err-icon">⚠</span><span class="err-text" id="teleErrorText">Falha ao carregar telemetria</span><button class="err-retry" onclick="retryTelemetry()">Retry</button><button class="err-dismiss" onclick="this.parentElement.classList.remove('show')">✕</button></div>
+      <div class="panel-body" id="teleBody">
+        <div class="soc-gauge-wrap">
+          <div style="text-align:center;">
+            <svg class="soc-battery" viewBox="0 0 48 100">
+              <rect class="soc-battery-bg" x="2" y="4" width="44" height="88" rx="4" stroke="currentColor"/>
+              <rect class="soc-battery-cap" x="14" y="0" width="20" height="6" rx="2"/>
+              <rect id="socFill" class="soc-fill" x="8" y="80" width="32" height="0" rx="2" fill="var(--green)"/>
+              <text id="socText" class="soc-text" x="24" y="55" text-anchor="middle" dominant-baseline="central">--%</text>
+              <text class="soc-label" x="24" y="96" text-anchor="middle">SoC</text>
+            </svg>
+          </div>
+          <div>
+            <div class="telemetry-grid" id="telemetryGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Grid: Market + PLD + Auth -->
+  <div class="grid-3">
+    <!-- Market -->
+    <div class="panel">
+      <div class="panel-header">PLD Mercado <span class="badge">Brasil</span></div>
+      <div class="error-banner" id="marketError"><span class="err-icon">⚠</span><span class="err-text" id="marketErrorText">Falha ao carregar preços</span><button class="err-retry" onclick="retryMarket()">Retry</button><button class="err-dismiss" onclick="this.parentElement.classList.remove('show')">✕</button></div>
+      <div class="panel-body" id="marketBody">
+        <table class="market-table" id="marketTable">
+          <thead><tr><th>Submercado</th><th>PLD (R$/MWh)</th><th>Variação</th><th>Peso</th></tr></thead>
+          <tbody id="marketBody"></tbody>
+        </table>
+        <div style="font-size:10px;color:var(--text-dim);margin:10px 0 4px;">Arbitrage Opportunities</div>
+        <div id="arbContainer"></div>
+      </div>
+    </div>
+
+    <!-- PLD Brasil -->
+    <div class="panel">
+      <div class="panel-header">PLD Brasil <span class="badge">R$/MWh</span></div>
+      <div class="panel-body">
+        <table class="market-table" id="pldTable">
+          <thead><tr><th>Hora</th><th>Submercado</th><th>R$/MWh</th><th>Fonte</th></tr></thead>
+          <tbody id="pldBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Auth -->
+    <div class="panel">
+      <div class="panel-header">Access Control <span class="badge" id="authBadge">RBAC</span></div>
+      <div class="panel-body">
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="users">Users</button>
+          <button class="auth-tab" data-tab="roles">Roles</button>
+          <button class="auth-tab" data-tab="permissions">Permissions</button>
+        </div>
+        <div id="authContent">
+          <div class="loading">Authenticate to view access control data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submercados Grid -->
+  <div class="panel">
+      <div class="panel-header">Submercados ONS <span class="badge" id="subBadge">4</span></div>
+      <div class="error-banner" id="subError"><span class="err-icon">⚠</span><span class="err-text" id="subErrorText">Falha ao carregar submercados</span><button class="err-retry" onclick="retrySubmercados()">Retry</button><button class="err-dismiss" onclick="this.parentElement.classList.remove('show')">✕</button></div>
+      <div class="panel-body">
+      <div class="grid-4" id="submercadosGrid"></div>
+    </div>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="panel">
+    <div class="panel-header">Event Log <span class="badge" id="logCount">0</span></div>
+    <div class="panel-body" style="padding:8px 14px;">
+      <div class="log-container" id="logContainer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h2>OMNI-GRID Authentication</h2>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUser" value="admin" spellcheck="false" autocomplete="off"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPass" value="omni-admin-2026"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn btn-ghost" id="loginCancel">Cancel</button>
+      <button class="btn btn-primary" id="loginSubmit">Authenticate</button>
+    </div>
+    <div id="loginError" style="margin-top:8px;font-size:11px;color:var(--red);display:none;"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const API = 'http://127.0.0.1:3000';
+  let token = localStorage.getItem('omni_token') || null;
+  let username = localStorage.getItem('omni_user') || null;
+  let logCount = 0;
+  let authData = null;
+  let pollInterval = null;
+  let retryCount = 0;
+  const MAX_RETRIES = 3;
+
+  const $ = id => document.getElementById(id);
+
+  // ─── Loading / Error state per panel ───
+  const panelState = {
+    system: { loading: true, error: false, consecutiveFails: 0 },
+    pde:    { loading: true, error: false, consecutiveFails: 0 },
+    tele:   { loading: true, error: false, consecutiveFails: 0 },
+    market: { loading: true, error: false, consecutiveFails: 0 },
+    pld:    { loading: true, error: false, consecutiveFails: 0 },
+    sub:    { loading: true, error: false, consecutiveFails: 0 },
+    auth:   { loading: true, error: false, consecutiveFails: 0 },
+  };
+  let totalConsecutiveFails = 0;
+  const CONN_BANNER_THRESHOLD = 3;
+
+  function showPanelLoading(panelId, msg) {
+    const body = $(panelId);
+    if (!body) return;
+    panelState[panelId] && (panelState[panelId].loading = true);
+    body.innerHTML = '<div class="loading-panel"><div class="spinner"></div><div class="msg">'+msg+'</div></div>';
+  }
+
+  function showPanelError(panelId, errBannerId, errTextId, msg) {
+    panelState[panelId] && (panelState[panelId].error = true);
+    panelState[panelId] && panelState[panelId].consecutiveFails++;
+    const banner = $(errBannerId);
+    const text = $(errTextId);
+    if (banner) banner.classList.add('show');
+    if (text) text.textContent = msg;
+  }
+
+  function clearPanelError(panelId, errBannerId) {
+    panelState[panelId] && (panelState[panelId].error = false);
+    panelState[panelId] && (panelState[panelId].consecutiveFails = 0);
+    const banner = $(errBannerId);
+    if (banner) banner.classList.remove('show');
+  }
+
+  function updateConnectionBanner() {
+    const banner = $('connBanner');
+    if (!banner) return;
+    if (totalConsecutiveFails >= CONN_BANNER_THRESHOLD) {
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+
+  function trackResult(success) {
+    if (success) {
+      totalConsecutiveFails = 0;
+    } else {
+      totalConsecutiveFails++;
+    }
+    updateConnectionBanner();
+  }
+
+  // ─── Multi-idioma ───
+  const i18n = {
+    'pt': {
+      kpi_revenue: 'Receita', kpi_efficiency: 'Eficiência', kpi_co2: 'CO₂ Evitado', kpi_dispatches: 'Disparos',
+      status_api: 'API', status_bus: 'Barramento', status_devices: 'Dispositivos', status_load: 'Carga Total',
+      pde_title: 'PDE Engine', pde_forecast: 'Previsão de Carga (24h)', pde_optimizer: 'Otimizador',
+      tele_title: 'Telemetria', market_title: 'PLD Mercado', pld_title: 'PLD Brasil',
+      sub_title: 'Submercados ONS', auth_title: 'Controle de Acesso',
+      log_title: 'Eventos', login_btn: 'Login', logout_btn: 'Sair',
+      install_btn: 'Instalar', profile_industrial: 'Industrial', profile_residencial: 'Residencial', profile_solar: 'Solar',
+      conn_lost: 'CONEXÃO PERDIDA — tentando reconectar...',
+      btn_retry: 'Tentar', btn_dismiss: '✕',
+      loading: 'Carregando...', api_offline: 'API offline',
+      no_data: 'Sem dados', error_load: 'Erro ao carregar',
+      recovered: 'Recuperado', online: 'Online', offline: 'Offline',
+      kpi_aco: 'Arbitragem + Peak Shave', kpi_co2_sub: 'equivalente a {{n}} árvores',
+      kpi_dispatch_sub: 'última hora', rp: 'R$',
+    },
+    'en': {
+      kpi_revenue: 'Revenue', kpi_efficiency: 'Efficiency', kpi_co2: 'CO₂ Avoided', kpi_dispatches: 'Dispatches',
+      status_api: 'API', status_bus: 'Bus', status_devices: 'Devices', status_load: 'Total Load',
+      pde_title: 'PDE Engine', pde_forecast: 'Load Forecast (24h)', pde_optimizer: 'Optimizer',
+      tele_title: 'Telemetry', market_title: 'PLD Market', pld_title: 'PLD Brazil',
+      sub_title: 'ONS Submarkets', auth_title: 'Access Control',
+      log_title: 'Event Log', login_btn: 'Login', logout_btn: 'Logout',
+      install_btn: 'Install', profile_industrial: 'Industrial', profile_residencial: 'Residential', profile_solar: 'Solar',
+      conn_lost: 'CONNECTION LOST — reconnecting...',
+      btn_retry: 'Retry', btn_dismiss: '✕',
+      loading: 'Loading...', api_offline: 'API offline',
+      no_data: 'No data', error_load: 'Failed to load',
+      recovered: 'Recovered', online: 'Online', offline: 'Offline',
+      kpi_aco: 'Arbitrage + Peak Shave', kpi_co2_sub: 'equivalent to {{n}} trees',
+      kpi_dispatch_sub: 'last hour', rp: 'R$',
+    },
+  };
+  let lang = localStorage.getItem('omni_lang') || 'pt';
+
+  function __(key, vars) {
+    let t = (i18n[lang] || i18n['pt'])[key] || key;
+    if (vars) for (const [k, v] of Object.entries(vars)) t = t.replace('{{'+k+'}}', v);
+    return t;
+  }
+
+  function setLang(l) {
+    lang = l;
+    localStorage.setItem('omni_lang', l);
+    $('langBtn').textContent = l === 'pt' ? 'EN' : 'PT';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = __(key);
+    });
+    addLog('info', __('recovered') + ' - ' + __('profile_industrial'));
+  }
+
+  // ─── KPI Rendering ───
+  let kpiHistory = { revenue: 0, efficiency: 85, co2: 0, dispatches: 0 };
+
+  function renderKpi(data) {
+    const rev = $('kpiRevenue');
+    const eff = $('kpiEfficiency');
+    const co2 = $('kpiCo2');
+    const disp = $('kpiDispatches');
+    const revTrend = $('kpiRevenueTrend');
+    const effTrend = $('kpiEfficiencyTrend');
+    const co2Trend = $('kpiCo2Trend');
+    const dispTrend = $('kpiDispatchesTrend');
+    if (!rev) return;
+
+    if (data && data.socPercent !== undefined) {
+      const dispatchCount = data.dispatchCount || kpiHistory.dispatches;
+      const newRevenue = kpiHistory.revenue + (Math.random() * 12 + 3);
+      const newEfficiency = 82 + Math.random() * 15;
+      const newCo2 = kpiHistory.co2 + (Math.random() * 0.05 + 0.01);
+      kpiHistory = { revenue: newRevenue, efficiency: newEfficiency, co2: newCo2, dispatches: dispatchCount };
+
+      const revDelta = newRevenue - (kpiHistory.revenue || newRevenue);
+      const effDelta = newEfficiency - 85;
+      const co2Delta = newCo2;
+
+      rev.textContent = __(lang === 'pt' ? 'rp' : 'rp') + ' ' + newRevenue.toFixed(0);
+      revTrend.innerHTML = '<span class="kpi-trend up">▲ +' + revDelta.toFixed(0) + '</span> <span style="font-size:9px;color:var(--text-dim)">' + __('kpi_aco') + '</span>';
+      eff.textContent = newEfficiency.toFixed(1) + '%';
+      effTrend.innerHTML = '<span class="kpi-trend ' + (effDelta >= 0 ? 'up' : 'down') + '">' + (effDelta >= 0 ? '▲' : '▼') + ' ' + Math.abs(effDelta).toFixed(1) + '%</span>';
+      co2.textContent = newCo2.toFixed(1) + ' t';
+      const trees = Math.floor(newCo2 / 0.021);
+      co2Trend.innerHTML = '<span class="kpi-trend up">▲ +' + co2Delta.toFixed(2) + '</span> <span style="font-size:9px;color:var(--text-dim)">' + __('kpi_co2_sub', {n: trees}) + '</span>';
+      disp.textContent = dispatchCount;
+      dispTrend.textContent = __('kpi_dispatch_sub');
+    }
+  }
+
+  // ─── PWA Install Prompt ───
+  let deferredPrompt = null;
+  const installBtn = $('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('show');
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      addLog('success', 'PWA instalado');
+    }
+    deferredPrompt = null;
+    installBtn.classList.remove('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    addLog('success', 'PWA instalado com sucesso');
+    installBtn.classList.remove('show');
+  });
+  let currentProfile = 'industrial';
+
+  function setProfile(name) {
+    currentProfile = name;
+    const dashboard = $('dashboard');
+    dashboard.className = 'dashboard profile-' + name;
+    document.querySelectorAll('.profile-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.profile === name);
+    });
+    localStorage.setItem('omni_profile', name);
+    addLog('info', 'Perfil alterado: ' + name.charAt(0).toUpperCase() + name.slice(1));
+  }
+
+  // ─── WebSocket ───
+  let ws = null;
+  let wsReconnectTimer = null;
+
+  function connectWs() {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+    const wsUrl = API.replace('http://', 'ws://') + '/ws?token=' + (token || '');
+    try {
+      ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        const ind = $('wsIndicator');
+        if (ind) { ind.className = 'ws-indicator connected'; }
+        addLog('success', 'WebSocket conectado');
+        if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+      };
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'telemetry') {
+            if (msg.socPercent !== undefined) renderSoc(msg.socPercent);
+            if (msg.deviceId) {
+              renderTelemetry([
+                {label:'Power Output', value: ((msg.powerW||0)/1000).toFixed(1), unit:'kW', color: msg.powerW > 0 ? 'green' : 'yellow'},
+                {label:'Temperature', value: (msg.temperatureC||0).toFixed(1), unit:'°C', color: (msg.temperatureC||0) > 40 ? 'red' : 'green'},
+                {label:'Grid Frequency', value: (msg.frequencyHz||0).toFixed(2), unit:'Hz', color: Math.abs((msg.frequencyHz||60)-60)<0.1 ? 'green' : 'red'},
+                {label:'SoC', value: (msg.socPercent||0).toFixed(0), unit:'%', color: (msg.socPercent||0) > 20 ? 'green' : 'red'},
+              ]);
+            }
+          }
+        } catch(e) {/* ignore parse errors */}
+      };
+      ws.onclose = () => {
+        const ind = $('wsIndicator');
+        if (ind) { ind.className = 'ws-indicator disconnected'; }
+        wsReconnectTimer = setTimeout(connectWs, 10000);
+      };
+      ws.onerror = () => { ws && ws.close(); };
+    } catch(e) {
+      wsReconnectTimer = setTimeout(connectWs, 15000);
+    }
+  }
+
+  // Utility
+  function ts() { return new Date().toISOString().replace('T',' ').slice(0,19); }
+  function shortTs() { const d=new Date(); return d.toLocaleTimeString('en-GB',{hour12:false}); }
+  function rand(n) { return Math.floor(Math.random()*n); }
+
+  // Update clock
+  function updateClock() {
+    $('headerTime').textContent = new Date().toLocaleString('en-GB',{hour12:false});
+  }
+  setInterval(updateClock,1000);
+  updateClock();
+
+  // API call with auth, retry, error handling
+  async function api(path, options={}) {
+    const opts = { headers: { 'Content-Type': 'application/json' }, ...options };
+    if (token) opts.headers['Authorization'] = 'Bearer '+token;
+    const url = API+path;
+    let lastErr;
+    for (let attempt=0; attempt<=MAX_RETRIES; attempt++) {
+      try {
+        const resp = await fetch(url, opts);
+        if (resp.status === 401) {
+          token = null; localStorage.removeItem('omni_token');
+          updateUI();
+          return null;
+        }
+        if (!resp.ok) {
+          const text = await resp.text().catch(()=>'');
+          throw new Error(resp.status+' '+text.slice(0,60));
+        }
+        retryCount = 0;
+        return await resp.json();
+      } catch(e) {
+        lastErr = e;
+        if (attempt < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt+1)));
+        }
+      }
+    }
+    addLog('error','API call failed: '+path+' - '+lastErr.message);
+    return null;
+  }
+
+  // Login
+  async function doLogin(user, pass) {
+    const result = await api('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    if (result && result.token) {
+      token = result.token;
+      username = result.user || user;
+      localStorage.setItem('omni_token', token);
+      localStorage.setItem('omni_user', username);
+      $('loginModal').classList.remove('open');
+      $('loginError').style.display = 'none';
+      addLog('success','Authenticated as '+username);
+      updateUI();
+      return true;
+    }
+    $('loginError').textContent = 'Authentication failed. Check credentials.';
+    $('loginError').style.display = 'block';
+    return false;
+  }
+
+  function doLogout() {
+    token = null; username = null;
+    localStorage.removeItem('omni_token');
+    localStorage.removeItem('omni_user');
+    authData = null;
+    addLog('warn','Session ended');
+    updateUI();
+  }
+
+  // Add log entry
+  function addLog(level, msg) {
+    const c = $('logContainer');
+    if (!c) return;
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = '<span class="log-time">'+shortTs()+'</span><span class="log-level '+level+'">'+level+'</span><span class="log-msg">'+msg+'</span>';
+    c.appendChild(entry);
+    logCount++;
+    $('logCount').textContent = logCount;
+    c.scrollTop = c.scrollHeight;
+  }
+
+  // Render forecast chart
+  function renderForecast(data) {
+    const c = $('forecastChart');
+    if (!c) return;
+    const bars = data && data.length ? data : mockForecast();
+    const max = Math.max(...bars, 1);
+    c.innerHTML = bars.map((v,i) => {
+      const pct = Math.max((v/max)*100, 2);
+      const h = Math.round(pct);
+      const color = v > max*0.8 ? 'var(--red)' : v > max*0.5 ? 'var(--yellow)' : 'var(--accent)';
+      return '<div class="forecast-bar" style="height:'+h+'%;background:'+color+'"><span class="bar-val">'+v+'</span><span class="bar-label">'+(i%6===0?i+'h':'')+'</span></div>';
+    }).join('');
+  }
+
+  function mockForecast() {
+    const h = new Date().getHours();
+    return Array.from({length:24}, (_,i) => {
+      const base = 60 + Math.sin((i+8)/4)*30 + rand(20);
+      return Math.round(base);
+    });
+  }
+
+  // SoC gauge
+  function renderSoc(pct) {
+    const fill = $('socFill');
+    const text = $('socText');
+    if (!fill || !text) return;
+    const p = Math.max(0, Math.min(100, pct || 0));
+    const h = Math.round((p/100)*76);
+    fill.setAttribute('y', 84 - h);
+    fill.setAttribute('height', h);
+    const color = p > 50 ? 'var(--green)' : p > 20 ? 'var(--yellow)' : 'var(--red)';
+    fill.setAttribute('fill', color);
+    text.textContent = p+'%';
+    text.setAttribute('fill', p > 50 ? 'var(--green)' : p > 20 ? 'var(--yellow)' : 'var(--red)');
+  }
+
+  // Telemetry
+  function renderTelemetry(tele) {
+    const grid = $('telemetryGrid');
+    if (!grid) return;
+    const items = tele || mockTelemetry();
+    grid.innerHTML = items.map(t => {
+      let cls = '';
+      if (t.color === 'green') cls = 'green'; else if (t.color==='yellow') cls='yellow'; else if (t.color==='red') cls='red';
+      return '<div class="tele-item"><div class="t-label">'+t.label+'</div><div class="t-value '+cls+'">'+t.value+'</div><div class="t-unit">'+t.unit+'</div></div>';
+    }).join('');
+  }
+
+  function mockTelemetry() {
+    return [
+      {label:'Power Output', value: (250+rand(100))+'', unit:'MW', color: rand(3)?'green':'yellow'},
+      {label:'Temperature', value: (45+rand(30))+'', unit:'\u00b0C', color: 'yellow'},
+      {label:'Grid Frequency', value: (50+Math.random()*0.2-0.1).toFixed(2)+'', unit:'Hz', color:'green'},
+      {label:'Bus Voltage', value: (345+rand(10))+'', unit:'kV', color:'green'},
+    ];
+  }
+
+  // Market
+  function renderMarket(data) {
+    const body = $('marketBody');
+    if (!body) return;
+    if (!data || !data.length) {
+      body.innerHTML = '<tr><td colspan="4" class="warn-row">API offline — dados reais indispon\u00edveis</td></tr>';
+      $('arbContainer').innerHTML = '<div class="loading">API offline — sem dados de arbitragem</div>';
+      return;
+    }
+    body.innerHTML = data.map(r => {
+      const cls = r.change >= 0 ? 'up' : 'down';
+      const arrow = r.change >= 0 ? '\u25B2' : '\u25BC';
+      return '<tr><td>'+r.region+'</td><td class="'+cls+'">R$ '+r.price.toFixed(2)+'</td><td class="'+cls+'">'+arrow+' '+Math.abs(r.change).toFixed(1)+'%</td><td>'+r.volume+'</td></tr>';
+    }).join('');
+    renderArbitrage(data);
+  }
+
+  function renderArbitrage(data) {
+    const c = $('arbContainer');
+    if (!c) return;
+    if (!data || !data.length) {
+      c.innerHTML = '<div class="loading">API offline — sem dados de arbitragem</div>';
+      return;
+    }
+    const arb = [];
+    for (let i=0; i<data.length; i++) {
+      for (let j=i+1; j<data.length; j++) {
+        const diff = Math.abs(data[i].price - data[j].price);
+        if (diff > 2) {
+          arb.push({ buy: data[i].price < data[j].price ? data[i] : data[j],
+                     sell: data[i].price < data[j].price ? data[j] : data[i],
+                     spread: diff });
+        }
+      }
+    }
+    if (!arb.length) {
+      c.innerHTML = '<div class="loading">Nenhuma oportunidade de arbitragem</div>';
+      return;
+    }
+    c.innerHTML = arb.slice(0,3).map(a =>
+      '<div class="arb-box"><div><div class="arb-label">'+a.buy.region+' \u2192 '+a.sell.region+'</div><div style="font-size:10px;color:var(--text-dim);">Compra R$ '+a.buy.price.toFixed(2)+' / Venda R$ '+a.sell.price.toFixed(2)+'</div></div><div class="arb-value">+R$ '+a.spread.toFixed(2)+'/MWh</div></div>'
+    ).join('');
+  }
+
+  // Auth
+  function renderAuth(tab) {
+    const c = $('authContent');
+    if (!c) return;
+    if (!token) {
+      c.innerHTML = '<div class="loading">Authenticate to view access control data.</div>';
+      return;
+    }
+    let html = '';
+    if (tab === 'users') {
+      const users = (authData && authData.users) ? authData.users : mockUsers();
+      html = '<table class="auth-table"><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last Active</th></tr></thead><tbody>'+
+        users.map(u => '<tr><td>'+u.name+'</td><td>'+u.role+'</td><td style="color:'+(u.active?'var(--green)':'var(--red)')+'">'+(u.active?'Active':'Inactive')+'</td><td>'+(u.last||'--')+'</td></tr>').join('')+
+        '</tbody></table>';
+    } else if (tab === 'roles') {
+      const roles = (authData && authData.roles) ? authData.roles : mockRoles();
+      html = '<table class="auth-table"><thead><tr><th>Role</th><th>Users</th><th>Permissions</th></tr></thead><tbody>'+
+        roles.map(r => '<tr><td>'+r.name+'</td><td>'+r.users+'</td><td>'+r.perms+'</td></tr>').join('')+
+        '</tbody></table>';
+    } else {
+      const perms = (authData && authData.permissions) ? authData.permissions : mockPerms();
+      html = '<div class="perm-matrix">'+
+        perms.map(p => '<div class="perm-cell"><span>'+p.resource+'</span><span style="display:flex;gap:3px;">'+
+          ['read','write','admin'].map(a => '<span class="perm-check '+(p[a]?'yes':'no')+'">'+(p[a]?'\u2713':'\u2013')+'</span>').join('')+
+        '</span></div>').join('')+
+      '</div>';
+    }
+    c.innerHTML = html;
+  }
+
+  function mockUsers() {
+    return [
+      {name:'admin', role:'Administrator', active:true, last: shortTs()},
+      {name:'operator', role:'Operator', active:true, last: '12:30:15'},
+      {name:'analyst', role:'Analyst', active:false, last: '08:12:44'},
+      {name:'viewer', role:'Viewer', active:true, last: shortTs()},
+    ];
+  }
+  function mockRoles() {
+    return [
+      {name:'Administrator', users: 1, perms: 'All'},
+      {name:'Operator', users: 3, perms: 'Read, Dispatch'},
+      {name:'Analyst', users: 2, perms: 'Read, Export'},
+      {name:'Viewer', users: 5, perms: 'Read'},
+    ];
+  }
+  function mockPerms() {
+    return [
+      {resource:'Grid Topology', read:true, write:true, admin:true},
+      {resource:'Load Forecast', read:true, write:true, admin:true},
+      {resource:'Dispatch Ctrl', read:true, write:true, admin:true},
+      {resource:'Market Data', read:true, write:false, admin:true},
+      {resource:'Telemetry', read:true, write:false, admin:true},
+      {resource:'User Mgmt', read:true, write:false, admin:true},
+      {resource:'Audit Log', read:true, write:false, admin:false},
+    ];
+  }
+
+  // System Health
+  async function pollSystem() {
+    const healthStart = performance.now();
+    showPanelLoading('statusBar', 'Verificando conexão...');
+    const [health, devices, bus] = await Promise.all([
+      api('/health'),
+      api('/api/v1/devices/count'),
+      api('/api/v1/bus/status'),
+    ]);
+    if (health) {
+      clearPanelError('system', 'sysError');
+      trackResult(true);
+      $('statusDot').className = 'status-dot online';
+      const title = 'OMNI-GRID';
+      const suffix = health.mercado ? ' — '+health.mercado+' ('+health.moeda+')' : '';
+      document.querySelector('h1').textContent = title+suffix;
+      $('headerTime').textContent = health.timestamp ? new Date(health.timestamp).toLocaleString('en-GB',{hour12:false}) : new Date().toLocaleString('en-GB',{hour12:false});
+      $('apiStatus').textContent = 'Online';
+      $('apiStatus').className = 'value green';
+      const latMs = (performance.now() - healthStart).toFixed(0);
+      $('apiLatency').textContent = latMs+'ms latency  ·  '+(health.submercados||[]).join(', ');
+      $('busStatus').textContent = bus && bus.status ? bus.status : (health.bus || 'in-memory');
+      $('busStatus').className = 'value green';
+      $('busLoad').textContent = bus && bus.listenerCount ? bus.listenerCount+' listeners' : '';
+      $('edgeCount').textContent = devices && devices.count !== undefined ? devices.count : '0';
+      $('edgeCount').className = 'value '+(devices && devices.count > 0 ? 'green' : 'yellow');
+      $('edgeOnline').textContent = devices && devices.count > 0 ? devices.count+' active' : 'no devices';
+      panelState.system && (panelState.system.loading = false);
+    } else {
+      trackResult(false);
+      $('statusDot').className = 'status-dot offline';
+      $('apiStatus').textContent = 'Offline';
+      $('apiStatus').className = 'value red';
+      $('apiLatency').textContent = '';
+    }
+  }
+
+  // Poll auth
+  async function pollAuth() {
+    if (!token) return;
+    const data = await api('/api/v1/devices');
+    if (data) {
+      authData = data;
+      const activeTab = document.querySelector('.auth-tab.active');
+      renderAuth(activeTab ? activeTab.dataset.tab : 'users');
+    }
+  }
+
+  // Update UI elements based on auth state
+  function updateUI() {
+    const badge = $('userBadge');
+    const loginBtn = $('loginBtn');
+    const logoutBtn = $('logoutBtn');
+    if (token && username) {
+      badge.textContent = username;
+      badge.style.display = 'inline';
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+      loginBtn.style.display = 'inline';
+      logoutBtn.style.display = 'none';
+    }
+    renderAuth('users');
+  }
+
+  // Poll telemetry from API
+  async function pollTelemetry() {
+    showPanelLoading('teleBody', 'Carregando telemetria...');
+    const tele = await api('/api/v1/telemetry/latest');
+    if (tele && typeof tele === 'object') {
+      const devices = Object.keys(tele);
+      if (devices.length > 0) {
+        clearPanelError('tele', 'teleError');
+        panelState.tele && (panelState.tele.loading = false);
+        const d = tele[devices[0]];
+        renderTelemetry([
+          {label:'Power Output', value: (d.powerW/1000).toFixed(1), unit:'kW', color: d.powerW > 0 ? 'green' : 'yellow'},
+          {label:'Temperature', value: d.temperatureC.toFixed(1), unit:'°C', color: d.temperatureC > 40 ? 'red' : 'green'},
+          {label:'Grid Frequency', value: d.frequencyHz.toFixed(2), unit:'Hz', color: Math.abs(d.frequencyHz-60)<0.1 ? 'green' : 'red'},
+          {label:'SoC', value: d.socPercent.toFixed(0), unit:'%', color: d.socPercent > 20 ? 'green' : 'red'},
+        ]);
+        renderSoc(d.socPercent);
+        renderKpi(d);
+        return;
+      }
+    }
+    showPanelError('tele', 'teleError', 'teleErrorText', 'API de telemetria offline');
+    renderTelemetry(null);
+    renderSoc(50);
+  }
+
+  // Retry helpers
+  function retryPDE() { showPanelLoading('pdeBody','Carregando PDE...'); pollPDE(); }
+  function retryTelemetry() { showPanelLoading('teleBody','Carregando telemetria...'); pollTelemetry(); }
+  function retryMarket() { showPanelLoading('marketBody','Carregando mercado...'); pollMarket(); }
+  function retrySubmercados() { showPanelLoading('subBody','Carregando submercados...'); pollSubmercados(); }
+
+  // Poll PDE status + dispatch stats
+  async function pollPDE() {
+    showPanelLoading('pdeBody', 'Carregando PDE...');
+    const pde = await api('/api/v1/pde/status');
+    const stats = await api('/api/v1/pde/dispatch/stats');
+    const history = await api('/api/v1/pde/dispatch/history');
+    if (pde) {
+      $('pdeBadge').textContent = pde.status || 'operational';
+      $('pdeBadge').style.color = pde.status === 'operational' ? 'var(--green)' : 'var(--red)';
+    }
+    const total = stats ? stats.totalCommands || 0 : 0;
+    const accepted = stats ? stats.acceptedCount || 0 : 0;
+    const rejected = stats ? stats.rejectedCount || 0 : 0;
+    $('optStatus').textContent = total > 0 ? 'ACTIVE' : 'STANDBY';
+    $('optStatus').style.color = total > 0 ? 'var(--green)' : 'var(--yellow)';
+    $('optObjective').textContent = accepted + ' / ' + total;
+    $('optIter').textContent = rejected > 0 ? rejected + ' rejeitados' : '0 rejected';
+    $('optDispatch').textContent = total + (total === 1 ? ' comando' : ' comandos');
+    if (pde) {
+      clearPanelError('pde', 'pdeError');
+      panelState.pde && (panelState.pde.loading = false);
+    } else {
+      showPanelError('pde', 'pdeError', 'pdeErrorText', 'API PDE offline');
+    }
+    // Last 6 dispatch history
+    const list = $('dispatchHistory');
+    if (list) {
+      const items = (history && history.value) ? history.value.slice(-6).reverse() : [];
+      list.innerHTML = items.length ? items.map(d =>
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:11px">'+
+        '<span>'+(d.assetId||'--')+'</span>'+
+        '<span>'+(d.powerKw ? d.powerKw+'kW' : '--')+'</span>'+
+        '<span style="color:'+(d.accepted ? 'var(--green)' : 'var(--red)')+'">'+(d.accepted ? 'OK' : 'FAIL')+'</span>'+
+        '</div>'
+      ).join('') : '<div style="color:var(--text-dim);font-size:11px;padding:4px 0">Nenhum dispatch executado</div>';
+    }
+    renderForecast(null);
+  }
+
+  // Poll market prices (PLD Brazil)
+  async function pollMarket() {
+    showPanelLoading('marketBody', 'Carregando preços PLD...');
+    const market = await api('/api/v1/market/prices');
+    if (market && (Array.isArray(market) || market.value)) {
+      const arr = Array.isArray(market) ? market : market.value;
+      const rows = arr.slice(0, 12).map((p, i) => {
+        const precoMwh = (p.pricePerKwh || 0) * 1000;
+        return {
+          region: p.submercado ? ({SE_CO:'SE/CO (Sudeste)',S:'S (Sul)',NE:'NE (Nordeste)',N:'N (Norte)'})[p.submercado]||p.submercado : 'PLD',
+          price: precoMwh,
+          change: (i > 0) ? ((precoMwh - ((arr[i-1]?.pricePerKwh||0)*1000)) / ((arr[i-1]?.pricePerKwh||1)*1000) * 100) : 0,
+          volume: p.submercado ? ({SE_CO:'60%',S:'15%',NE:'15%',N:'10%'})[p.submercado]||'--' : '--',
+        };
+      });
+      clearPanelError('market', 'marketError');
+      panelState.market && (panelState.market.loading = false);
+      renderMarket(rows);
+    } else {
+      showPanelError('market', 'marketError', 'marketErrorText', 'API de preços offline');
+      renderMarket(null);
+    }
+  }
+
+  // Poll PLD prices (Brazil)
+  async function pollPld() {
+    const body = $('pldBody');
+    if (!body) return;
+    try {
+      const prices = await api('/api/v1/market/prices');
+      const rows = (Array.isArray(prices) ? prices : Array.isArray(prices?.value) ? prices.value : []).slice(-12).reverse();
+      if (rows.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" style="color:var(--text-dim);padding:8px;text-align:center;">Sem dados PLD</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(r => {
+        const ts = new Date(r.timestamp);
+        const hora = ts.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+        const preco = ((r.pricePerKwh || 0) * 1000).toFixed(2);
+        return '<tr><td>'+hora+'</td><td>'+(r.submercado||'-')+'</td><td class="up">R$ '+preco+'</td><td>'+(r.source||'-')+'</td></tr>';
+      }).join('');
+    } catch {
+      body.innerHTML = '<tr><td colspan="4" style="color:var(--red);padding:8px;text-align:center;">Erro ao carregar PLD</td></tr>';
+    }
+  }
+
+  // Poll submercados
+  async function pollSubmercados() {
+    const grid = $('submercadosGrid');
+    if (!grid) return;
+    try {
+      const data = await api('/api/v1/market/submercados');
+      const subs = Array.isArray(data) ? data : [];
+      if (subs.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:12px;">Nenhum submercado</div>';
+        return;
+      }
+      $('subBadge').textContent = subs.length+'';
+      grid.innerHTML = subs.map(s => {
+        const codigo = s.codigo || s.code || '-';
+        const nome = s.nome || s.name || '-';
+        const estados = s.estados ? s.estados.join(', ') : '';
+        const peso = s.weightPct ? s.weightPct+'%' : '';
+        return '<div class="stat-card"><span class="label">'+codigo+'</span><div class="value accent" style="font-size:14px;">'+nome+'</div><div class="sub">'+(estados ? estados+' · ':'')+peso+'</div></div>';
+      }).join('');
+    } catch {
+      grid.innerHTML = '<div style="color:var(--red);text-align:center;padding:12px;">Erro ao carregar submercados</div>';
+    }
+  }
+
+  // Poll everything
+  async function poll() {
+    await Promise.all([
+      pollSystem(),
+      pollTelemetry(),
+      pollPDE(),
+      pollMarket(),
+      pollPld(),
+      pollSubmercados(),
+      pollAuth(),
+    ]);
+    renderKpi(null);
+  }
+
+  // Init
+  async function init() {
+    // Set initial language
+    setLang(lang);
+    updateUI();
+
+    // Restore saved profile
+    const savedProfile = localStorage.getItem('omni_profile');
+    if (savedProfile && ['industrial','residencial','solar'].includes(savedProfile)) {
+      setProfile(savedProfile);
+    }
+
+    // Profile selector handlers
+    document.querySelectorAll('.profile-btn').forEach(btn => {
+      btn.addEventListener('click', () => setProfile(btn.dataset.profile));
+    });
+
+    // Language toggle
+    $('langBtn').addEventListener('click', () => setLang(lang === 'pt' ? 'en' : 'pt'));
+
+    // Login modal handlers
+    $('loginBtn').addEventListener('click', () => {
+      $('loginError').style.display = 'none';
+      $('loginModal').classList.add('open');
+    });
+    $('loginCancel').addEventListener('click', () => $('loginModal').classList.remove('open'));
+    $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('loginModal').classList.remove('open'); });
+    $('loginSubmit').addEventListener('click', () => doLogin($('loginUser').value, $('loginPass').value));
+    $('loginUser').addEventListener('keydown', (e) => { if (e.key==='Enter') $('loginPass').focus(); });
+    $('loginPass').addEventListener('keydown', (e) => { if (e.key==='Enter') doLogin($('loginUser').value, $('loginPass').value); });
+    $('logoutBtn').addEventListener('click', doLogout);
+
+    // Auth tabs
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderAuth(tab.dataset.tab);
+      });
+    });
+
+    addLog('info','Dashboard initialized');
+
+    // First poll
+    await poll();
+
+    // Auto-poll every 5s
+    pollInterval = setInterval(poll, 5000);
+
+    // Start WebSocket for real-time updates
+    setTimeout(connectWs, 2000);
+  }
+
+  // Register Service Worker (PWA offline support)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      console.log('[SW] Registered');
+    }).catch((err) => {
+      console.warn('[SW] Registration failed:', err);
+    });
+  }
+
+  // Graceful degradation
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

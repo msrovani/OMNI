@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asset-manager
+  namespace: omni-grid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: asset-manager
+  template:
+    metadata:
+      labels:
+        app: asset-manager
+    spec:
+      containers:
+        - name: asset-manager
+          image: ghcr.io/omni-grid/asset-manager:latest
+          ports:
+            - containerPort: 50052
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: omni-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: omni-db-credentials
+                  key: password
+            - name: NATS_URL
+              value: nats://nats:4222
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asset-manager
+  namespace: omni-grid
+spec:
+  selector:
+    app: asset-manager
+  ports:
+    - name: grpc
+      port: 50052
+      targetPort: 50052

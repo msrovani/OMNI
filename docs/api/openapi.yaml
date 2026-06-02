@@ -1,0 +1,180 @@
+openapi: 3.1.0
+info:
+  title: Omni-Grid API Gateway
+  version: 1.0.0
+  description: |
+    REST + WebSocket API for Omni-Grid energy management system.
+    Base URL: http://localhost:3000 (dev) or https://api.omni-grid.io/v1 (prod)
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api.omni-grid.io/v1
+    description: Production
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: System health + BR market info
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+
+  /auth/login:
+    post:
+      summary: JWT authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: JWT token returned
+
+  /auth/me:
+    get:
+      summary: Current user + permissions
+      responses:
+        "200":
+          description: User profile and permissions
+
+  /ws:
+    get:
+      summary: WebSocket telemetry stream
+      description: Connect via ws://host/ws?token=<jwt>
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "101":
+          description: Upgraded to WebSocket
+
+  /api/v1/pde/forecast:
+    post:
+      summary: Run load/solar forecast
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId: { type: string }
+                features: { type: object }
+                horizon: { type: integer }
+      responses:
+        "200":
+          description: Forecast result
+
+  /api/v1/pde/optimize:
+    post:
+      summary: Run stochastic optimization
+      description: Accepts optional submercado parameter for BR market
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assets: { type: array, items: { type: string } }
+                prices: { type: array, items: { type: number } }
+                currentSoc: { type: number }
+                objective: { type: string }
+                submercado: { type: string, enum: [SE_CO, S, NE, N] }
+      responses:
+        "200":
+          description: Optimization result
+
+  /api/v1/pde/dispatch/execute:
+    post:
+      summary: Execute dispatch command
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assetId: { type: string }
+                powerKw: { type: number }
+                durationSec: { type: integer }
+      responses:
+        "200":
+          description: Dispatch command acknowledged
+
+  /api/v1/pde/dispatch/history:
+    get:
+      summary: Dispatch log
+      responses:
+        "200":
+          description: Dispatch history
+
+  /api/v1/market/prices:
+    get:
+      summary: PLD prices by submercado
+      parameters:
+        - name: submercado
+          in: query
+          schema:
+            type: string
+            enum: [SE_CO, S, NE, N]
+      responses:
+        "200":
+          description: Price time series
+
+  /api/v1/market/submercados:
+    get:
+      summary: List 4 submercados ONS
+      responses:
+        "200":
+          description: Submercado list with metadata
+
+  /api/v1/market/regulatory:
+    get:
+      summary: BR regulatory info (bandeira, ANEEL, ONS)
+      responses:
+        "200":
+          description: Regulatory information
+
+  /api/v1/edge/telemetry:
+    post:
+      summary: Ingest telemetry from edge device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId: { type: string }
+                voltageV: { type: number }
+                currentA: { type: number }
+                socPercent: { type: number }
+                temperatureC: { type: number }
+                gridConnected: { type: boolean }
+      responses:
+        "200":
+          description: Telemetry ingested
+
+  /api/v1/telemetry/latest:
+    get:
+      summary: All latest telemetry
+      responses:
+        "200":
+          description: Latest telemetry snapshot

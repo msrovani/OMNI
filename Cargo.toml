@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/omni-cloud",
+    "crates/blockchain-audit",
+    "crates/omni-box-fw",
+    "crates/pde-kernel",
+]
