@@ -1432,8 +1432,10 @@ Suporte ao sistema de bandeiras tarifárias da ANEEL:
 |-----------|--------|----------|
 | REN ANEEL 1.000/2022 | ✅ Implementado | Regras de distribuição e conexão |
 | Lei 14.300/2022 (GD) | ✅ Modelado | SCEE, ACL, autoconsumo |
+| CP 39/2023 (Baterias) | ✅ Implementado | TUST/TUSD para armazenamento — aprovado 02/06/2026 |
+| Lei 15.269/2025 (Leilão) | 🔜 Dez/2026 | Leilão específico de baterias |
 | Portaria 50/2021 (PLD horário) | ✅ Implementado | Preços horários por submercado |
-| Serviços Ancilares (ONS) | ⏳ Em desenvolvimento | Submódulo 14.1 e 26 |
+| Serviços Ancilares (ONS) | ✅ Implementado | Submódulo 14.1 — OnsDispatchHandler + OnsDispatchCommand |
 | ICMS/PIS/COFINS | ✅ Modelado | Alíquotas por estado |
 | ACL (Ambiente Livre) | ✅ Suportado | Clientes ≥ 500 kW |
 
@@ -1475,9 +1477,55 @@ export interface OptimizationResult {
 }
 ```
 
+### 6.11 Tarifação de Baterias (CP 39/2023 — ANEEL 02/06/2026)
+
+```typescript
+// compliance.ts — implemented
+export const BATTERY_TARIFF_RULES = {
+  autonomous: {
+    mode: "autonomous",
+    tustRsPerMwh: 15.40,
+    tusdRsPerMwh: 28.90,
+    chargeTariffed: true,
+    dischargeTariffed: true,
+    description: "Baterias em operação autônoma (arbitrage) pagam TUST/TUSD dupla"
+  },
+  ons_dispatched: {
+    mode: "ons_dispatched",
+    tustRsPerMwh: 15.40,
+    tusdRsPerMwh: 28.90,
+    chargeTariffed: false,
+    dischargeTariffed: true,
+    description: "Baterias despachadas pelo ONS pagam tarifa única (somente descarga)"
+  }
+};
+```
+
+#### Recomendação Automática
+- `recommendTariffMode(dispatchCountPerDay, onsDispatchSharePct)`
+- Se > 30% dos despachos forem comandados pelo ONS → recomenda tarifa única
+- Economia potencial: R$ 44,30/MWh (diferença entre dupla e única)
+
+### 6.12 Despacho ONS (Novo — OnsDispatchHandler)
+
+```typescript
+// ons-dispatch.ts — new module
+export class OnsDispatchHandler {
+  processOnsCommand(cmd: OnsDispatchCommand)
+  processOnsCommandBatch(commands: OnsDispatchCommand[])
+  getRegulationStatus(assetId: string)
+  getAncillaryRevenueRates()
+}
+```
+
+- 5 tipos de serviço ancilar: regulação primária/secundária/terciária, reserva de potência, suporte reativo
+- Taxas de receita: R$ 15-45/MWh por tipo de serviço
+- Batch processing para múltiplos comandos ONS simultâneos
+- Integração com DispatchOrchestrator via `executeOnsCommand()`
+
 ---
 
-> **Generated:** OMNI-GRID CONSOLIDATED SPECIFICATION v6.1 — Updated 2026-05-28
+> **Generated:** OMNI-GRID CONSOLIDATED SPECIFICATION v6.1.1 — Updated 2026-06-02 (ANEEL CP 39/2023)
 > **Status:** EXECUTABLE READY — Implementation status annotations added. Current codebase uses TypeScript npm workspaces (packages/) with in-memory storage. Production target uses Go/Python microservices with PostgreSQL/NATS/Redis via Docker Compose.
 > Adaptado para o mercado brasileiro com submercados PLD, R$/MWh, utilities nacionais e compliance ANEEL/CCEE/ONS.
 >

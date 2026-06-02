@@ -38,7 +38,7 @@ C:\Users\Public\OMNI\
 | # | Service | Lang | Port | Purpose | Key File |
 |---|---------|------|------|---------|----------|
 | 1 | **api-gateway** | TS (Fastify 5) | 3000 | REST+WS gateway, auth, PDE, telemetry | `packages/api-gateway/src/index.ts` |
-| 2 | **pde-engine** | TS | — | Forecast, optimize, dispatch, compliance | `packages/pde-engine/src/index.ts` |
+| 2 | **pde-engine** | TS | — | Forecast, optimize, dispatch, compliance, ONS ancillary, battery tariff | `packages/pde-engine/src/index.ts` |
 | 3 | **market-connect** | TS | — | PLD simulation, utility/trader registry | `packages/market-connect/src/index.ts` |
 | 4 | **omni-auth** | TS (lib) | — | JWT + RBAC library | `packages/omni-auth/src/index.ts` |
 | 5 | **omni-bus** | TS (lib) | — | Message bus (in-memory/NATS) | `packages/omni-bus/src/index.ts` |
@@ -86,6 +86,18 @@ StochasticOptimizer.optimize(assets, prices, currentSoc, objective, submercado)
 
 DispatchOrchestrator.execute(cmd)
   → HMAC-signs command, records history, publishes to message bus
+  → supports reason: "arbitrage" | "peak_shave" | "ancillary" | "v2g" | "ons_command"
+
+OnsDispatchHandler.processOnsCommand(cmd)
+  → Receives ONS command (frequency regulation / reserve power / reactive support)
+  → Signs with ONS HMAC key, estimates revenue, routes to DispatchOrchestrator
+  → Tracks FrequencyRegulationStatus per asset (primaryMw, secondaryMw, tertiaryMw, reservePowerMw)
+
+Compliance Module (compliance.ts)
+  → getBatteryTariffRules() — TUST/TUSD rules per CP 39/2023 (autonomous vs ons_dispatched)
+  → calculateBatteryTariff(mode, energyMwh, pldRevenueRsPerMwh)
+  → recommendTariffMode(dispatchCountPerDay, onsDispatchSharePct)
+  → getFullComplianceReport() — ANEEL/ONS/CCEE status including battery regulation
 ```
 
 ### D. Brazilian Live Data Collection
@@ -217,9 +229,11 @@ Manages 4 services: api-gateway, omni-cloud, market-connect, simulator
 | POST | `/api/v1/pde/optimize` | Yes | Stochastic optimization (accepts `submercado`) |
 | POST | `/api/v1/pde/dispatch/execute` | No* | Execute dispatch command |
 | GET | `/api/v1/pde/dispatch/history` | Yes | Dispatch log |
+| POST | `/api/v1/pde/dispatch/ons-command` | Yes | ONS-commanded ancillary dispatch |
+| GET | `/api/v1/pde/dispatch/ancillary-status` | Yes | Frequency regulation status per asset |
 | GET | `/api/v1/market/prices` | Yes | PLD prices (query: `?submercado=`) |
 | GET | `/api/v1/market/submercados` | Yes | List 4 submercados ONS |
-| GET | `/api/v1/market/regulatory` | Yes | BR regulatory info |
+| GET | `/api/v1/market/regulatory` | Yes | BR regulatory info (incl. battery tariffs) |
 | POST | `/api/v1/edge/telemetry` | Yes | Ingest telemetry |
 | GET | `/api/v1/telemetry/latest` | Yes | All latest telemetry |
 
@@ -278,8 +292,10 @@ npm test --workspace edge/omni-box-simulator    # Simulator tests (vitest)
 ## Regulatory Compliance (implemented)
 
 - **ANEEL:** REN 1.000/2022, REN 1.059/2023, Lei 14.300/2022, REN 482/2012
+- **ANEEL (baterias):** CP 39/2023 (aprovada 02/06/2026) — TUST/TUSD para armazenamento
+- **Lei 15.269/2025:** Leilão de baterias previsto para dezembro/2026
 - **CCEE:** Regras de Comercialização, PLD horário
-- **ONS:** Submódulo 14.1 (RED), Procedimentos de Rede
+- **ONS:** Submódulo 14.1 (RED), Submódulo 26 (serviços ancilares), Procedimentos de Rede
 - **GD Model:** SCEE (net metering) + ACL (free market)
 - **Taxes:** ICMS 12-25% (varia por estado), PIS/COFINS 9,25%
 

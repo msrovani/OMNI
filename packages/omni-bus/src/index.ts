@@ -28,7 +28,7 @@ export const DispatchMessageSchema = z.object({
   assetId: z.string(),
   powerKw: z.number(),
   durationSeconds: z.number(),
-  reason: z.enum(["arbitrage", "peak_shave", "ancillary", "v2g"]),
+  reason: z.enum(["arbitrage", "peak_shave", "ancillary", "v2g", "ons_command"]),
   signature: z.string(),
 });
 

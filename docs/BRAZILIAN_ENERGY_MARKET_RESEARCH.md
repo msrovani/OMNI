@@ -134,6 +134,32 @@ Comprar energia nos horários de PLD baixo (mediana noturna) e vender nos horár
 - Frotas de veículos elétricos como recursos distribuídos
 - Regulamentação em desenvolvimento pela ANEEL
 
+### 9.5 Armazenamento de Energia com Baterias (NOVO — CP 39/2023)
+
+**Em 02/06/2026, a ANEEL aprovou o CP 39/2023**, criando o marco regulatório para sistemas de armazenamento de energia no SIN:
+
+#### Regras de TUST/TUSD para Baterias
+| Modo | Cobrança na Carga | Cobrança na Descarga | Cenário |
+|------|:-:|:-:|--------|
+| **Autônomo** (arbitrage/peak shave) | Sim | Sim | Operador opta por arbitragem de PLD |
+| **Despachado pelo ONS** (serviços ancilares) | Não | Sim | Bateria atende ordem do ONS |
+
+- **Autônomo:** TUST + TUSD em ambos os fluxos (dupla tarifação)
+- **ONS despachado:** Tarifa única (somente descarga) — ABEEólica considera vitória parcial contra dupla cobrança
+- **TUST referência:** R$ 15,40/MWh | **TUSD referência:** R$ 28,90/MWh
+
+#### Impacto no Modelo de Negócio
+1. **Validado:** Baterias autônomas (arbitrage PLD) têm regras claras — viabilidade econômica comprovada
+2. **Novo Revenue Stream:** Serviços ancilares ONS com tarifa única — margem maior que arbitrage
+3. **Leilão Específico:** Lei 15.269/2025 prevê leilão de baterias para **dezembro/2026**
+4. **Ponto de Atenção:** ABEEólica aponta "dupla cobrança" como barreira para expansão
+
+#### Recomendação Estratégica Omni-Grid
+- Prioridade **alta**: credenciamento ONS para serviços ancilares
+- Prioridade **alta**: módulo de compliance tarifário (TUST/TUSD)
+- Prioridade **média**: preparação para leilão de baterias dez/2026
+- **Decisão arquitetural:** `DispatchOrchestrator` + `OnsDispatchHandler` em `packages/pde-engine/`
+
 ## 10. Utilities Brasileiras (Distribuidoras) — Clientes Potenciais
 
 | Distribuidora | Região | Grupos |
@@ -213,4 +239,6 @@ Comprar energia nos horários de PLD baixo (mediana noturna) e vender nos horár
 - Portaria MM E 50/2021 (PLD horário)
 - Lei 14.120/2021 (Marco Legal)
 - Lei 14.300/2022 (Marco da GD)
+- Lei 15.269/2025 (Leilão de baterias — dezembro/2026)
 - REN ANEEL 1.000/2022 e 1.059/2023
+- **CP 39/2023 (aprovada 02/06/2026)** — Regras de TUST/TUSD para sistemas de armazenamento de energia

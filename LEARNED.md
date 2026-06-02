@@ -170,28 +170,6 @@
 - `openssl`/Python não disponível — não gera certs mTLS
 - Sem Gradle/Android SDK — não compila Android
 - Sem PlatformIO — não compila ESP32
-- Sem `npm install` executado — vitest não está disponível para rodar testes do simulador
-
-## Cobertura de Testes
-| Package | Testes | Status |
-|---------|--------|--------|
-| pde-engine | 50 | ✅ |
-| asset-manager | 14 | ✅ |
-| market-connect | 8 | ✅ |
-| api-gateway | 10 | ✅ |
-| integration-tests | 31 | ✅ |
-| omni-auth | 18 | ✅ |
-| omni-bus | 10 | ✅ |
-| omni-cloud | 4 | ✅ |
-| omni-box-fw (unit) | 28 inline | ✅ |
-| omni-box-fw (integracao) | 23 | ✅ |
-| simulator | 10 | ✅ |
-| ESP32 safety | 21 | ✅ |
-| ESP32 modbus | 10 | ✅ |
-| ESP32 can | 11 | ✅ |
-| Android FallbackTest | 37 | ✅ |
-| Android Compose UI | 17 | ✅ |
-| **Total** | **~302** | ✅ |
 
 ## Sprint 3 — Frontend + Notificações + CI/CD (Completo)
 ### 3.1 KPI Cards
@@ -221,3 +199,86 @@
 
 ### 3.5 CI/CD Pipeline
 - `.github/workflows/ci.yml` — 8 jobs: lint, test-ts, test-rust, test-android, build-ts, build-rust, build-esp32, deploy-docs
+
+---
+
+## Sprint 4 — ANEEL Regulation + Investor Pitch (02/06/2026)
+
+### Contexto Histórico
+**Em 02/06/2026, a ANEEL aprovou o CP 39/2023**, criando o marco regulatório para sistemas de armazenamento de energia com baterias no SIN. Isso valida completamente o modelo de negócio do Omni-Grid e abre dois novos mercados: serviços ancilares ONS (tarifa única) e leilão de baterias (Lei 15.269/2025, previsto para dezembro/2026).
+
+### Código Implementado
+
+#### Tipos Novos (`packages/pde-engine/src/types.ts`)
+| Tipo | Descrição |
+|------|-----------|
+| `BatteryTariffMode` | `"autonomous"` | `"ons_dispatched"` |
+| `BatteryTariffRule` | TUST/TUSD + regime de cobrança (carga/descarga) |
+| `TariffBand` | Bandeira tarifária com acréscimo em R$/MWh |
+| `TariffCalculationResult` | Resultado do cálculo de tarifa com custos líquidos |
+| `AncillaryServiceType` | 5 tipos: regulação primária/secundária/terciária, reserva, reativo |
+| `OnsDispatchCommand` | Comando de despacho do ONS com ordem de mérito, deadline, submercado |
+| `OnsDispatchRecord` | Registro de execução de comando ONS com receita estimada |
+| `FrequencyRegulationStatus` | Status de participação em serviços ancilares por ativo |
+| `DispatchCommand.reason` | Adicionado `"ons_command"` aos motivos válidos |
+
+#### Compliance Module (`packages/pde-engine/src/compliance.ts`)
+- **`BATTERY_TARIFF_RULES`**: Regras de TUST/TUSD para modos autônomo (dupla tarifação) e ONS (tarifa única)
+- **`calculateBatteryTariff()`**: Calcula custo de tarifa com base no modo, energia (MWh) e receita PLD
+- **`recommendTariffMode()`**: Recomenda modo tarifário com base no percentual de despacho ONS (threshold > 30%)
+- **`getFullComplianceReport()`**: Atualizado — CP 39/2023 e serviços ancilares marcados como `"conforme"`
+- **`BANDEIRAS` exportado**: Objeto com bandeiras tarifárias e acréscimos
+
+#### ONS Dispatch (`packages/pde-engine/src/ons-dispatch.ts`) — **NOVO**
+- **`OnsDispatchHandler`**: Processa comandos do ONS para serviços ancilares
+- **5 tipos**: regulação primária (R$ 45/MWh), secundária (R$ 35/MWh), terciária (R$ 25/MWh), reserva (R$ 20/MWh), reativo (R$ 15/MWh)
+- **`processOnsCommand()`**: Valida, assina, estima receita → devolve `DispatchCommand` + registro
+- **`processOnsCommandBatch()`**: Processa múltiplos comandos simultâneos
+- **`getRegulationStatus()`**: Retorna participação em MW por tipo de serviço por ativo
+- **Assinatura HMAC-SHA256** com chave exclusiva ONS
+
+#### Dispatch Orchestrator (`packages/pde-engine/src/dispatch.ts`)
+- **`executeOnsCommand()`**: Executa comando ONS com metadados (onsCommandId, serviceType)
+- **`getAncillaryHistory()`**: Filtra histórico por motivos ancillary/ons_command
+- **Stats**: Adicionado `ancillaryCount` e `onsCommandCount`
+
+#### Barramento (`packages/omni-bus/src/index.ts`)
+- Schema Zod: `"ons_command"` adicionado ao enum `reason`
+
+#### CLI (`packages/omni-cli/src/index.ts`)
+- `dispatch ons-command` — subcomando para enviar comandos ONS (--service, --merito, --ons-id, --submercado)
+- `compliance report` — relatório completo de compliance
+- `compliance battery-tariff` — mostra regras TUST/TUSD e recomendação
+
+### Testes
+
+| Arquivo | Testes | Status |
+|---------|--------|--------|
+| `test/compliance.test.ts` | 4→12 (+8 novos) | ✅ |
+| `test/ons-dispatch.test.ts` | 8 (novo) | ✅ |
+| `test/dispatch.test.ts` | 4→8 (+4 novos) | ✅ |
+
+### Documentos Atualizados
+
+| Documento | Mudança |
+|-----------|---------|
+| `docs/PITCH_PARA_INVESTIDOR.md` | **NOVO** — Pitch completo para VC brasileiro (BE8) |
+| `docs/BRAZILIAN_ENERGY_MARKET_RESEARCH.md` | Seção 9.5: Armazenamento com Baterias (CP 39/2023) |
+| `docs/OMNI_GRID_CONSOLIDATED_SPECIFICATION.md` | Seções 6.11 (Tarifação Baterias) + 6.12 (Despacho ONS) |
+| `AGENTS.md` | PDE Flow + API routes + compliance + service catalog |
+| `LEARNED.md` | Esta sessão |
+
+### Cobertura de Testes Atualizada
+
+| Package | Testes | Status |
+|---------|--------|--------|
+| pde-engine | **50 → 70** (+20) | ✅ |
+| **Total geral** | **~302 → ~322** | ✅ |
+
+### Próximos Passos
+
+1. **Credenciamento ONS**: Processo formal para serviços ancilares
+2. **Leilão de Baterias**: Preparar participação como agregador (dez/2026)
+3. **Piloto Clientes**: 3 clientes industriais com success fee
+4. **Integração ACL**: Comercializadoras (Tradener, Comerc, Ecom, Safira, Delta)
+5. **Scripts de Pitch**: Regenerar PPTX/PDF com dados atualizados

@@ -206,10 +206,10 @@ dispatchCmd
   .requiredOption("--asset <id>", "asset ID")
   .requiredOption("--power <kw>", "power in kW", Number)
   .requiredOption("--duration <s>", "duration in seconds", Number)
-  .requiredOption("--reason <type>", "dispatch reason (arbitrage, peak_shave, ancillary, v2g)")
+  .requiredOption("--reason <type>", "dispatch reason (arbitrage, peak_shave, ancillary, v2g, ons_command)")
   .action(async (opts: { asset: string; power: number; duration: number; reason: string }) => {
     const json = hasJson();
-    const validReasons = ["arbitrage", "peak_shave", "ancillary", "v2g"];
+    const validReasons = ["arbitrage", "peak_shave", "ancillary", "v2g", "ons_command"];
     if (!validReasons.includes(opts.reason)) {
       console.error(colorError(`Invalid reason "${opts.reason}". Valid: ${validReasons.join(", ")}`));
       return;
@@ -221,7 +221,7 @@ dispatchCmd
         assetId: opts.asset,
         powerKw: opts.power,
         durationSeconds: opts.duration,
-        reason: opts.reason as "arbitrage" | "peak_shave" | "ancillary" | "v2g",
+        reason: opts.reason as "arbitrage" | "peak_shave" | "ancillary" | "v2g" | "ons_command",
       };
 
       const signature = orchestrator.sign(command);
@@ -257,6 +257,71 @@ dispatchCmd
         return;
       }
       console.error(colorError(`Dispatch failed: ${msg}`));
+    }
+  });
+
+dispatchCmd
+  .command("ons-command")
+  .description("Process an ONS-commanded dispatch for ancillary services")
+  .requiredOption("--asset <id>", "asset ID")
+  .requiredOption("--power <kw>", "power in kW", Number)
+  .requiredOption("--duration <s>", "duration in seconds", Number)
+  .requiredOption("--service <type>", "ancillary service type (frequency_regulation_primary, frequency_regulation_secondary, frequency_regulation_tertiary, reserve_power, reactive_support)")
+  .requiredOption("--merito <order>", "merit order number", Number)
+  .requiredOption("--ons-id <id>", "ONS command ID")
+  .requiredOption("--submercado <code>", "submercado (SE_CO, S, NE, N)")
+  .action(async (opts: { asset: string; power: number; duration: number; service: string; merito: number; onsId: string; submercado: string }) => {
+    const json = hasJson();
+    const validServices = ["frequency_regulation_primary", "frequency_regulation_secondary", "frequency_regulation_tertiary", "reserve_power", "reactive_support"];
+    const validSubmercados = ["SE_CO", "S", "NE", "N"];
+
+    if (!validServices.includes(opts.service)) {
+      console.error(colorError(`Invalid service "${opts.service}". Valid: ${validServices.join(", ")}`));
+      return;
+    }
+    if (!validSubmercados.includes(opts.submercado)) {
+      console.error(colorError(`Invalid submercado "${opts.submercado}". Valid: ${validSubmercados.join(", ")}`));
+      return;
+    }
+
+    try {
+      const { OnsDispatchHandler } = await import("@omni-grid/pde-engine");
+      const handler = new OnsDispatchHandler(config.jwtSecret);
+      const result = await handler.processOnsCommand({
+        assetId: opts.asset,
+        serviceType: opts.service as any,
+        powerKw: opts.power,
+        durationSeconds: opts.duration,
+        meritoOrder: opts.merito,
+        deadline: new Date(Date.now() + 300000),
+        onsCommandId: opts.onsId,
+        submercado: opts.submercado as any,
+      });
+
+      if (json) {
+        printJson(result);
+        return;
+      }
+
+      console.log(colorSuccess("ONS dispatch command processed"));
+      console.log();
+      console.log(formatTable([
+        ["ONS Command ID", result.record.onsCommandId],
+        ["Asset ID", result.record.assetId],
+        ["Service Type", result.record.serviceType],
+        ["Power (kW)", String(result.record.powerKw)],
+        ["Duration (s)", String(result.record.durationSeconds)],
+        ["Merit Order", String(result.record.meritoOrder)],
+        ["Est. Revenue", colorSuccess(`R$ ${result.estimatedRevenue.toFixed(2)}`)],
+        ["Status", colorSuccess("Accepted")],
+      ], { header: ["Field", "Value"] }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (json) {
+        printJson({ error: msg });
+        return;
+      }
+      console.error(colorError(`ONS dispatch failed: ${msg}`));
     }
   });
 
@@ -398,6 +463,108 @@ marketCmd
         return;
       }
       console.error(colorError(`Failed to fetch prices: ${msg}`));
+    }
+  });
+
+const complianceCmd = program
+  .command("compliance")
+  .description("Regulatory compliance information");
+
+complianceCmd
+  .command("report")
+  .description("Show full compliance report")
+  .action(async () => {
+    const json = hasJson();
+    try {
+      const { getFullComplianceReport, getRegulatoryCompliance } = await import("@omni-grid/pde-engine");
+      const base = getRegulatoryCompliance();
+      const checks = getFullComplianceReport();
+
+      if (json) {
+        printJson({ base, checks });
+        return;
+      }
+
+      console.log(colorInfo("Regulatory Compliance Overview"));
+      console.log();
+      console.log(formatTable([
+        ["ANEEL Resolution", base.aneelResolution],
+        ["Battery Regulation", base.aneelBatteryResolution ?? "N/A"],
+        ["ONS Ancillary", base.onsAncillaryAccreditation ?? "N/A"],
+        ["GD Model", base.gdCompensationModel ?? "N/A"],
+        ["Bandeira", base.bandeiraTarifaria ?? "N/A"],
+        ["ICMS", `${base.icmsAliquotaPct ?? "N/A"}%`],
+        ["PIS/COFINS", `${base.pisCofinsAliquotaPct ?? "N/A"}%`},
+      ], { header: ["Field", "Value"] }));
+
+      console.log();
+      console.log(colorInfo("Compliance Checks"));
+      console.log();
+      const rows = checks.map((c) => [
+        c.orgao,
+        c.resolucao,
+        c.status === "conforme" ? colorSuccess(c.status) : colorWarning(c.status),
+        c.observacao ?? "",
+      ]);
+      console.log(formatTable(rows, { header: ["Orgão", "Resolução", "Status", "Observação"] }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (json) {
+        printJson({ error: msg });
+        return;
+      }
+      console.error(colorError(`Compliance report failed: ${msg}`));
+    }
+  });
+
+complianceCmd
+  .command("battery-tariff")
+  .description("Show battery TUST/TUSD tariff rules")
+  .action(async () => {
+    const json = hasJson();
+    try {
+      const { getBatteryTariffRules, calculateBatteryTariff, recommendTariffMode } = await import("@omni-grid/pde-engine");
+
+      const rules = getBatteryTariffRules();
+      if (json) {
+        printJson(rules);
+        return;
+      }
+
+      console.log(colorInfo("Battery TUST/TUSD Tariff Rules (CP 39/2023)"));
+      console.log();
+      for (const rule of rules) {
+        console.log(colorInfo(`  ${rule.mode === "autonomous" ? "Autônomo (dupla tarifação)" : "Despacho ONS (tarifa única)"}`));
+        console.log(`    TUST: R$ ${rule.tustRsPerMwh.toFixed(2)}/MWh`);
+        console.log(`    TUSD: R$ ${rule.tusdRsPerMwh.toFixed(2)}/MWh`);
+        console.log(`    Cobrança na carga: ${rule.chargeTariffed ? "Sim" : "Não"}`);
+        console.log(`    Cobrança na descarga: ${rule.dischargeTariffed ? "Sim" : "Não"}`);
+        console.log(`    ${rule.description}`);
+        console.log();
+      }
+
+      const sample = calculateBatteryTariff("autonomous", 1, 350);
+      console.log(colorInfo("Exemplo: Bateria autônoma (1 MWh, PLD R$ 350/MWh)"));
+      console.log(formatTable([
+        ["Receita bruta", `R$ ${(350).toFixed(2)}`],
+        ["Custo TUST/TUSD (carga)", `R$ ${sample.chargeCostRs.toFixed(2)}`],
+        ["Custo TUST/TUSD (descarga)", `R$ ${sample.dischargeCostRs.toFixed(2)}`],
+        ["Receita líquida", sample.netRevenueRs > 0 ? colorSuccess(`R$ ${sample.netRevenueRs.toFixed(2)}`) : colorError(`R$ ${sample.netRevenueRs.toFixed(2)}`)],
+      ], { header: ["Item", "Valor"] }));
+
+      const rec = recommendTariffMode(4, 40);
+      console.log();
+      console.log(colorInfo("Recomendação de modo tarifário"));
+      console.log(`  Modo recomendado: ${rec.recommended === "ons_dispatched" ? "Despacho ONS (tarifa única)" : "Autônomo (tarifa dupla)"}`);
+      console.log(`  Economia: R$ ${rec.savingsRsPerMwh.toFixed(2)}/MWh`);
+      console.log(`  ${rec.rationale}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (json) {
+        printJson({ error: msg });
+        return;
+      }
+      console.error(colorError(`Battery tariff check failed: ${msg}`));
     }
   });
 

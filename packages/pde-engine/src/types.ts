@@ -50,7 +50,7 @@ export interface DispatchCommand {
   assetId: string;
   powerKw: number;
   durationSeconds: number;
-  reason: "arbitrage" | "peak_shave" | "ancillary" | "v2g";
+  reason: "arbitrage" | "peak_shave" | "ancillary" | "v2g" | "ons_command";
   signature?: string;
 }
 
@@ -88,12 +88,86 @@ export type OptimizationObjective =
 
 export interface RegulatoryCompliance {
   aneelResolution: string;
+  aneelBatteryResolution?: string;
   cceeRegistration?: string;
   onsAccreditation?: string;
+  onsAncillaryAccreditation?: string;
   gdCompensationModel?: "SCEE" | "ACL" | "AUTOCONSUMO";
   bandeiraTarifaria?: "verde" | "amarela" | "vermelha-1" | "vermelha-2";
   icmsAliquotaPct?: number;
   pisCofinsAliquotaPct?: number;
   moeda?: string;
   unidade?: string;
+}
+
+export type BatteryTariffMode = "autonomous" | "ons_dispatched";
+
+export interface TariffBand {
+  nome: string;
+  rotulo: "verde" | "amarela" | "vermelha-1" | "vermelha-2";
+  acrescimoRsPerMwh: number;
+  vigente: boolean;
+}
+
+export interface BatteryTariffRule {
+  mode: BatteryTariffMode;
+  tustRsPerMwh: number;
+  tusdRsPerMwh: number;
+  chargeTariffed: boolean;
+  dischargeTariffed: boolean;
+  description: string;
+  regulation: string;
+}
+
+export interface TariffCalculationResult {
+  mode: BatteryTariffMode;
+  tustRsPerMwh: number;
+  tusdRsPerMwh: number;
+  totalRsPerMwh: number;
+  chargeCostRs: number;
+  dischargeCostRs: number;
+  netRevenueRs: number;
+}
+
+export type AncillaryServiceType =
+  | "frequency_regulation_primary"
+  | "frequency_regulation_secondary"
+  | "frequency_regulation_tertiary"
+  | "reserve_power"
+  | "reactive_support";
+
+export interface OnsDispatchCommand {
+  assetId: string;
+  serviceType: AncillaryServiceType;
+  powerKw: number;
+  durationSeconds: number;
+  meritoOrder: number;
+  deadline: Date;
+  onsCommandId: string;
+  signature?: string;
+  submercado: PldSubmarket;
+}
+
+export interface OnsDispatchRecord {
+  commandId: string;
+  assetId: string;
+  serviceType: AncillaryServiceType;
+  powerKw: number;
+  durationSeconds: number;
+  timestamp: Date;
+  onsCommandId: string;
+  meritoOrder: number;
+  accepted: boolean;
+  revenueBrl: number;
+  signature: string;
+}
+
+export interface FrequencyRegulationStatus {
+  assetId: string;
+  primaryMw: number;
+  secondaryMw: number;
+  tertiaryMw: number;
+  reservePowerMw: number;
+  totalAncillaryRevenueBrlPerMonth: number;
+  accreditationStatus: "accredited" | "pending" | "not_applied";
 }
